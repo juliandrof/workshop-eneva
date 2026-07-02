@@ -16,9 +16,13 @@ import uuid
 
 PRES_ID = None  # set after creation
 
+# Google Slides' native widescreen page is 10 x 5.625" (16:9). We author the
+# layout in the more spacious 13.33 x 7.50" (PowerPoint 16:9) coordinate system
+# and scale everything down uniformly so it maps exactly onto the real canvas.
 SLIDE_W = 13.33
 SLIDE_H = 7.50
 INCH = 914400
+SCALE = 10.0 / 13.333  # 0.75 — maps 13.33" layout onto the 10" page
 
 # Palette — energy green primary + Databricks accents
 GREEN = {"red": 0.043, "green": 0.239, "blue": 0.180}       # deep energy green (primary)
@@ -76,7 +80,7 @@ def uid(prefix=""):
 
 
 def emu(inches):
-    return int(inches * INCH)
+    return int(inches * SCALE * INCH)
 
 
 # ---- Low-level helpers ----
@@ -107,7 +111,7 @@ def mk_style(oid, bold=False, sz=12, color=None, font="Inter", italic=False, rt=
         tr["startIndex"] = s
     if e is not None:
         tr["endIndex"] = e
-    st = {"bold": bold, "italic": italic, "fontSize": {"magnitude": sz, "unit": "PT"},
+    st = {"bold": bold, "italic": italic, "fontSize": {"magnitude": round(sz * SCALE, 1), "unit": "PT"},
           "fontFamily": font, "weightedFontFamily": {"fontFamily": font, "weight": 700 if bold else 400}}
     flds = "bold,italic,fontSize,fontFamily,weightedFontFamily"
     if color:
@@ -249,7 +253,7 @@ def build_agenda(sid):
             "fields": "tableCellBackgroundFill"}})
         reqs.append({"updateTextStyle": {"objectId": tid,
             "cellLocation": {"rowIndex": 0, "columnIndex": c}, "textRange": {"type": "ALL"},
-            "style": {"bold": True, "fontSize": {"magnitude": 13, "unit": "PT"}, "fontFamily": "Inter",
+            "style": {"bold": True, "fontSize": {"magnitude": round(13 * SCALE, 1), "unit": "PT"}, "fontFamily": "Inter",
                 "weightedFontFamily": {"fontFamily": "Inter", "weight": 700},
                 "foregroundColor": {"opaqueColor": {"rgbColor": WHITE}}},
             "fields": "bold,fontSize,fontFamily,weightedFontFamily,foregroundColor"}})
@@ -265,7 +269,7 @@ def build_agenda(sid):
                 "fields": "tableCellBackgroundFill"}})
             reqs.append({"updateTextStyle": {"objectId": tid,
                 "cellLocation": {"rowIndex": r, "columnIndex": c}, "textRange": {"type": "ALL"},
-                "style": {"bold": c < 2, "fontSize": {"magnitude": 12, "unit": "PT"}, "fontFamily": "Inter",
+                "style": {"bold": c < 2, "fontSize": {"magnitude": round(12 * SCALE, 1), "unit": "PT"}, "fontFamily": "Inter",
                     "weightedFontFamily": {"fontFamily": "Inter", "weight": 700 if c < 2 else 400},
                     "foregroundColor": {"opaqueColor": {"rgbColor": GREEN if c < 2 else DARK_GRAY}}},
                 "fields": "bold,fontSize,fontFamily,weightedFontFamily,foregroundColor"}})
@@ -426,18 +430,22 @@ def build_teoria_aibi(sid):
 
 def build_lab_handson(sid, num, title, dur, steps):
     reqs = content_slide(sid, f"Lab {num}: {title}  ({dur})")
-    step_h = min(5.5 / len(steps), 1.6)
+    # Distribute steps evenly across the usable band (below header, above footer),
+    # centering each step's content within its row so the slide fills nicely.
+    top, bottom = 1.55, 7.05
+    band = (bottom - top) / len(steps)
     for i, (st, sd) in enumerate(steps):
-        y = 1.4 + i * step_h
-        cb = uid("cb"); reqs += [mk_shape(sid, cb, "ELLIPSE", 0.5, y + 0.05, 0.55, 0.55), mk_fill(cb, ORANGE)]
-        cn = uid("cn"); reqs += [mk_shape(sid, cn, "TEXT_BOX", 0.5, y + 0.1, 0.55, 0.45),
-                                  mk_text(cn, str(i + 1)), mk_style(cn, bold=True, sz=18, color=WHITE), mk_para(cn, "CENTER")]
-        tt = uid("tt"); reqs += [mk_shape(sid, tt, "TEXT_BOX", 1.3, y, 3.4, 0.45),
-                                  mk_text(tt, st), mk_style(tt, bold=True, sz=14, color=GREEN)]
-        dt = uid("dt"); reqs += [mk_shape(sid, dt, "TEXT_BOX", 1.3, y + 0.42, 11.5, step_h - 0.55),
-                                  mk_text(dt, sd), mk_style(dt, sz=11, color=DARK_GRAY), mk_para(dt, "START", 140)]
+        y = top + i * band          # row top
+        cy = y + band / 2           # row vertical center
+        cb = uid("cb"); reqs += [mk_shape(sid, cb, "ELLIPSE", 0.6, cy - 0.32, 0.64, 0.64), mk_fill(cb, ORANGE)]
+        cn = uid("cn"); reqs += [mk_shape(sid, cn, "TEXT_BOX", 0.6, cy - 0.27, 0.64, 0.5),
+                                  mk_text(cn, str(i + 1)), mk_style(cn, bold=True, sz=20, color=WHITE), mk_para(cn, "CENTER")]
+        tt = uid("tt"); reqs += [mk_shape(sid, tt, "TEXT_BOX", 1.55, cy - 0.42, 11.0, 0.42),
+                                  mk_text(tt, st), mk_style(tt, bold=True, sz=16, color=GREEN)]
+        dt = uid("dt"); reqs += [mk_shape(sid, dt, "TEXT_BOX", 1.55, cy + 0.02, 11.2, 0.7),
+                                  mk_text(dt, sd), mk_style(dt, sz=12, color=DARK_GRAY), mk_para(dt, "START", 140)]
         if i < len(steps) - 1:
-            sp = uid("sp"); reqs += [mk_shape(sid, sp, "RECTANGLE", 0.5, y + step_h - 0.08, 12.3, 0.01),
+            sp = uid("sp"); reqs += [mk_shape(sid, sp, "RECTANGLE", 0.6, y + band - 0.02, 12.1, 0.012),
                                      mk_fill(sp, {"red": 0.9, "green": 0.9, "blue": 0.9})]
     return reqs
 
@@ -501,7 +509,7 @@ def build_cover():
     at = uid("at"); reqs += [mk_shape("s_cover", at, "TEXT_BOX", 1.0, 4.3, 11.3, 0.5),
         mk_text(at, "Data + AI Platform  |  Ingestão  |  LakeFlow Designer  |  Genie  |  AI/BI"),
         mk_style(at, sz=16, color=MEDIUM_GRAY)]
-    reqs.append(mk_image("s_cover", uid("dl"), f"{RAW}/databricks_logo.png", 1.0, 5.6, 2.4, 0.4))
+    reqs.append(mk_image("s_cover", uid("dl"), f"{RAW}/databricks_logo_white.png", 1.0, 5.6, 2.4, 0.4))
     bb = uid("bb"); reqs += [mk_shape("s_cover", bb, "RECTANGLE", 0, SLIDE_H - 0.08, SLIDE_W, 0.08), mk_fill(bb, ORANGE)]
     return reqs
 
@@ -519,15 +527,21 @@ def section_divider(sid, title):
 
 def main():
     global PRES_ID
+    import os
     print("Building Workshop Eneva deck...")
 
-    # 1. Create fresh presentation
-    resp = api_call("POST", "https://slides.googleapis.com/v1/presentations",
-                    {"title": "Workshop Hands-On Databricks — Eneva"})
-    PRES_ID = resp["presentationId"]
-    print(f"Created presentation: {PRES_ID}")
+    # Reuse an existing presentation if EXISTING_PRES_ID is set (keeps the same
+    # URL and sharing); otherwise create a fresh one.
+    PRES_ID = os.environ.get("EXISTING_PRES_ID", "").strip()
+    if PRES_ID:
+        print(f"Reusing presentation: {PRES_ID}")
+    else:
+        resp = api_call("POST", "https://slides.googleapis.com/v1/presentations",
+                        {"title": "Workshop Hands-On Databricks — Eneva"})
+        PRES_ID = resp["presentationId"]
+        print(f"Created presentation: {PRES_ID}")
 
-    # remove the default slide later; first add ours
+    # Existing slides to remove after we add ours (temp holder avoids empty deck)
     info = api_call("GET", f"https://slides.googleapis.com/v1/presentations/{PRES_ID}")
     default_slides = [s["objectId"] for s in info.get("slides", [])]
 
@@ -552,6 +566,14 @@ def main():
         ("s_resumo", None),
         ("s_closing", None),
     ]
+
+    # If reusing a deck, delete the old slides first (temp holder keeps deck valid)
+    if default_slides:
+        batch_update([{"createSlide": {"objectId": "s_temp_hold",
+            "slideLayoutReference": {"predefinedLayout": "BLANK"}, "insertionIndex": 0}}])
+        for ds in default_slides:
+            batch_update([{"deleteObject": {"objectId": ds}}])
+        default_slides = ["s_temp_hold"]
 
     for i, (sid, _) in enumerate(slides):
         batch_update([{"createSlide": {"objectId": sid,
