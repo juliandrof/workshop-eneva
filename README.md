@@ -140,10 +140,11 @@ workshop-eneva/
 ### Passo 2: Preparar seu schema pessoal
 
 1. Abra o notebook `00_Setup/00_configuracao_catalogo.py`
-2. Preencha o widget **nome_participante** com seu primeiro nome
+2. **Execute a primeira célula** para que o widget **nome_participante** apareça no topo do notebook
+3. Preencha o widget **nome_participante** com seu primeiro nome
    > ⚠️ Sem espaços, sem acentos, minúsculo. Ex: `joao`, `maria`, `carlos`
-3. Execute todas as células
-4. O catálogo compartilhado `workshop_eneva` é criado (ou reaproveitado, se já existir) e o
+4. Execute as demais células
+5. O catálogo compartilhado `workshop_eneva` é criado (ou reaproveitado, se já existir) e o
    seu schema pessoal fica em: `workshop_eneva.<seu_nome>` — é ali que ficarão todas as suas tabelas
 
 ### Passo 3: Baixar os dados do workshop
