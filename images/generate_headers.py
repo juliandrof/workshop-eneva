@@ -69,7 +69,7 @@ HEADERS = {
     "header_setup": lab_header("SETUP", "Configura&#231;&#227;o Inicial",
                                "Cat&#225;logo Unity Catalog &#183; Dados sint&#233;ticos do parque gerador"),
     "header_lab1": lab_header("LAB 01", "Ingest&#227;o de Dados",
-                              "Auto Loader &#183; Camada Bronze &#183; Streaming de leituras"),
+                              "Upload manual de CSV/XLSX &#183; Camada Bronze"),
     "header_lab2": lab_header("LAB 02", "Transforma&#231;&#227;o &#8212; LakeFlow Designer",
                               "Silver &amp; Gold &#183; 4 transforma&#231;&#245;es low-code"),
     "header_lab3": lab_header("LAB 03", "Genie Space",

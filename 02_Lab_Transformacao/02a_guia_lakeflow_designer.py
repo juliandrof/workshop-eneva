@@ -20,20 +20,20 @@
 # MAGIC 4. **Catálogo de destino**: `workshop_eneva_<seu_nome>` — **Schema**: `default`
 # MAGIC
 # MAGIC ### Fontes de dados (nós de entrada)
-# MAGIC Adicione como fontes as tabelas Bronze criadas no Lab 1:
-# MAGIC - `bronze.bronze_geracao`
-# MAGIC - `bronze.bronze_usinas`
-# MAGIC - `bronze.bronze_unidades`
-# MAGIC - `bronze.bronze_municipios`
-# MAGIC - `bronze.bronze_fabricantes`
+# MAGIC Adicione como fontes as tabelas Bronze que você subiu no Lab 1:
+# MAGIC - `bronze.fato_geracao`
+# MAGIC - `bronze.dim_usinas`
+# MAGIC - `bronze.dim_unidades_geradoras`
+# MAGIC - `bronze.enriquecimento_municipios`
+# MAGIC - `bronze.enriquecimento_fabricantes`
 # MAGIC
 # MAGIC ### As 4 transformações (blocos visuais)
 # MAGIC
 # MAGIC | # | Bloco no Designer | O que fazer | Resultado |
 # MAGIC | -- | -- | -- | -- |
-# MAGIC | 1 | **Explode / Flatten** | Explodir o array `leituras` de `bronze_geracao` e derivar `ano/mês/dia/hora/turno` | `silver.silver_geracao` |
-# MAGIC | 2 | **Join** | Juntar `bronze_usinas` + `bronze_municipios` por `município + uf` | `silver.silver_usinas` |
-# MAGIC | 3 | **Join + Compute** | Juntar geração agregada + `unidades` + `fabricantes` e calcular `fator_capacidade` | `silver.silver_desempenho_unidades` |
+# MAGIC | 1 | **Cast + Derive** | Ajustar tipos de `fato_geracao` e derivar `ano/mês/dia/hora/turno` | `silver.silver_geracao` |
+# MAGIC | 2 | **Join** | Juntar `dim_usinas` + `enriquecimento_municipios` por `município + uf` | `silver.silver_usinas` |
+# MAGIC | 3 | **Join + Compute** | Juntar geração agregada + `dim_unidades_geradoras` + `enriquecimento_fabricantes` e calcular `fator_capacidade` | `silver.silver_desempenho_unidades` |
 # MAGIC | 4 | **Aggregate + Window** | Agregar geração por usina, `row_number()` para ranking e `% participação` | `gold.gold_geracao_por_usina` |
 # MAGIC
 # MAGIC ### Data Quality (Expectations)

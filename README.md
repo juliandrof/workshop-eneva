@@ -31,8 +31,8 @@ Workshop prático de Databricks personalizado para o time da **Eneva**, com foco
 
 | # | Lab | Tópicos | Duração |
 | -- | -- | -- | -- |
-| 00 | **Setup** | Configuração do catálogo personalizado e geração de dados sintéticos | 15 min |
-| 01 | **Ingestão de Dados** | Auto Loader, ingestão incremental, camada Bronze | 30 min |
+| 00 | **Setup** | Configuração do catálogo personalizado (schemas Bronze/Silver/Gold) | 15 min |
+| 01 | **Ingestão de Dados** | Upload manual de CSV/XLSX via Catalog (Create table), camada Bronze | 30 min |
 | 02 | **Transformação — LakeFlow Designer** | Silver/Gold, 4 transformações low-code, Data Quality | 40 min |
 | 03 | **Genie Space** | Consumo de dados em linguagem natural, instruções customizadas | 30 min |
 | 04 | **AI/BI Dashboards** | Visualizações interativas, KPIs, gráficos | 30 min |
@@ -51,10 +51,10 @@ Workshop prático de Databricks personalizado para o time da **Eneva**, com foco
 ## Modelo de Dados
 
 O workshop usa um modelo estrela do **parque gerador da Eneva**: **1 tabela fato**
-(`silver_geracao`, com as leituras horárias de geração), **2 dimensões** (`dim_usinas` e
+(`fato_geracao`, com as leituras horárias de geração), **2 dimensões** (`dim_usinas` e
 `dim_unidades_geradoras`) e **2 tabelas de enriquecimento** (`enriquecimento_municipios` e
 `enriquecimento_fabricantes`), usadas para enriquecer as dimensões durante as transformações
-do Lab 2.
+do Lab 2. Todas as tabelas são ingeridas na camada **Bronze** por upload manual (Lab 1).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/juliandrof/workshop-eneva/main/images/modelo_er.png" alt="Modelo de Dados — Workshop Eneva" width="100%">
@@ -75,10 +75,9 @@ do Lab 2.
 | Permissão | Recurso | Labs |
 | -- | -- | -- |
 | `CREATE CATALOG` | `workshop_eneva_<nome>` | 00 |
-| `CREATE SCHEMA` | `raw`, `bronze`, `silver`, `gold` | 00 |
+| `CREATE SCHEMA` | `bronze`, `silver`, `gold` | 00 |
 | `USE CATALOG` / `USE SCHEMA` | Catálogo e schemas do participante | Todos |
-| `CREATE TABLE` / `SELECT` / `MODIFY` | Tabelas em todos os schemas | Todos |
-| `CREATE VOLUME` / `READ` / `WRITE` | Volume `raw.geracao_json` | 00, 01 |
+| `CREATE TABLE` / `SELECT` / `MODIFY` | Tabelas em todos os schemas (upload no Bronze) | Todos |
 | `CREATE PIPELINE` / `MANAGE` / `RUN` | Pipeline `pipeline_eneva_<nome>` | 02 |
 | `CREATE GENIE` / `USE GENIE` | Genie Space com tabelas Gold | 03 |
 | `CREATE DASHBOARD` | AI/BI Dashboard | 04 |
@@ -93,14 +92,20 @@ do Lab 2.
 ```
 workshop-eneva/
 │
+├── dados/                                # Dados prontos para upload manual (CSV + XLSX)
+│   ├── fato_geracao.csv / .xlsx          # FATO: leituras horárias de geração
+│   ├── dim_usinas.csv / .xlsx            # Dimensão: usinas
+│   ├── dim_unidades_geradoras.csv / .xlsx# Dimensão: unidades geradoras
+│   ├── enriquecimento_municipios.csv / .xlsx
+│   ├── enriquecimento_fabricantes.csv / .xlsx
+│   └── gerar_dados.py                    # Script que (re)gera os arquivos CSV/XLSX
+│
 ├── 00_Setup/
-│   ├── 00_configuracao_catalogo.py       # Criação do catálogo personalizado + schemas + volume
-│   └── 01_dados_cadastrais.py            # Geração das 4 tabelas cadastrais (dimensões + enriquecimento)
+│   └── 00_configuracao_catalogo.py       # Criação do catálogo + schemas Bronze/Silver/Gold
 │
 ├── 01_Lab_Ingestao/
-│   ├── 01a_gerador_geracao_streaming.py  # Gerador de JSONs de geração (1 por usina a cada ciclo)
-│   ├── 01b_ingestao_to_do.py             # Ingestão com Auto Loader — TO-DOs (exercício)
-│   └── 01c_ingestao_completo.py          # Ingestão completa (referência)
+│   ├── 01a_guia_upload_dados.py          # Guia passo-a-passo do upload manual (Create table)
+│   └── 01b_validacao.py                  # Validação das tabelas Bronze ingeridas
 │
 ├── 02_Lab_Transformacao/
 │   ├── 02a_guia_lakeflow_designer.py     # Guia visual passo-a-passo do LakeFlow Designer
@@ -134,22 +139,21 @@ workshop-eneva/
 3. Execute todas as células
 4. Seu catálogo será criado como: `workshop_eneva_<seu_nome>`
 
-### Passo 3: Gerar dados cadastrais
+### Passo 3: Baixar os dados do workshop
 
-1. Abra o notebook `00_Setup/01_dados_cadastrais.py`
-2. Use o **mesmo nome** do Passo 2
-3. Execute todas as células
-4. Verifique no **Catalog Explorer**:
+Os dados já estão prontos na pasta [`dados/`](dados/) deste repositório, cada tabela em
+**CSV** e **XLSX**. Baixe os arquivos (ou clone o repo) — eles serão enviados manualmente
+no **Lab 1**.
 
-| Tabela | Registros | Tipo | Descrição |
+| Arquivo | Registros | Tipo | Descrição |
 | -- | -- | -- | -- |
+| `fato_geracao` | 5.832 | **Fato** | Leituras horárias de geração por unidade (72h × 81 unidades) |
 | `dim_usinas` | 15 | Dimensão | Usinas termelétricas (gás/carvão) e solares |
-| `dim_unidades_geradoras` | ~60 | Dimensão | Motores, turbinas e inversores por usina |
+| `dim_unidades_geradoras` | 81 | Dimensão | Motores, turbinas e inversores por usina |
 | `enriquecimento_municipios` | 9 | Enriquecimento | Região, submercado do SIN e população |
 | `enriquecimento_fabricantes` | 7 | Enriquecimento | País, eficiência e disponibilidade de referência |
 
-> A **tabela fato** (`silver_geracao`) não é criada aqui — as leituras chegam em
-> **streaming** no Lab 1 e são transformadas no Lab 2.
+> Para **regenerar** os arquivos, rode `python3 dados/gerar_dados.py`.
 
 </br>
 
@@ -159,28 +163,34 @@ workshop-eneva/
 
 | Item | Detalhes |
 | -- | -- |
-| **Objetivo** | Ingerir leituras de geração via Auto Loader e materializar a camada Bronze |
-| **Notebook (exercício)** | `01_Lab_Ingestao/01b_ingestao_to_do.py` |
-| **Notebook (referência)** | `01_Lab_Ingestao/01c_ingestao_completo.py` |
-| **Gerador de dados** | `01_Lab_Ingestao/01a_gerador_geracao_streaming.py` |
+| **Objetivo** | Ingerir os 5 arquivos (CSV/XLSX) na camada Bronze via **upload manual** |
+| **Guia de upload** | `01_Lab_Ingestao/01a_guia_upload_dados.py` |
+| **Notebook de validação** | `01_Lab_Ingestao/01b_validacao.py` |
+| **Dados** | pasta [`dados/`](dados/) — 5 tabelas em CSV e XLSX |
 
 ### Instruções
 
-1. **Inicie o gerador de dados** — execute `01a_gerador_geracao_streaming.py` e **deixe rodando**
-2. **Complete os TO-DOs** no notebook `01b_ingestao_to_do.py`:
+1. **Suba cada arquivo** da pasta `dados/` para o schema `bronze` do seu catálogo:
+   1. No menu lateral, abra **Catalog** > `workshop_eneva_<seu_nome>` > schema **`bronze`**
+   2. Clique em **Create** > **Create table** (Upload files)
+   3. Arraste o arquivo (ex.: `fato_geracao.csv`), mantenha **First row = header**
+   4. **Table name** = nome do arquivo (ex.: `fato_geracao`) → **Create table**
+   5. Repita para os 5 arquivos
 
-| TO-DO | Descrição | Dica |
-| -- | -- | -- |
-| 1 | Completar a leitura com **Auto Loader** (`cloudFiles`) | Use `.option("cloudFiles.format", "json")` + `.schema()` + `.load()` |
-| 2 | Ingerir `dim_unidades_geradoras` → `bronze_unidades` | Siga o padrão de `bronze_usinas` |
-| 3 | Ingerir as **2 tabelas de enriquecimento** para Bronze | `bronze_municipios` e `bronze_fabricantes` |
+| Arquivo | Tabela Bronze |
+| -- | -- |
+| `fato_geracao.csv` / `.xlsx` | `bronze.fato_geracao` |
+| `dim_usinas.csv` / `.xlsx` | `bronze.dim_usinas` |
+| `dim_unidades_geradoras.csv` / `.xlsx` | `bronze.dim_unidades_geradoras` |
+| `enriquecimento_municipios.csv` / `.xlsx` | `bronze.enriquecimento_municipios` |
+| `enriquecimento_fabricantes.csv` / `.xlsx` | `bronze.enriquecimento_fabricantes` |
 
-3. **Verifique** a camada Bronze com a célula de verificação ao final do notebook
+2. **Valide** a ingestão executando `01b_validacao.py` (confere as 5 tabelas)
 
 ### Conceitos abordados
-- Auto Loader / CloudFiles
-- Ingestão incremental e *exactly-once*
-- Schema Enforcement
+- Upload manual de arquivos (CSV / Excel) no Databricks
+- Catalog Explorer > Create table
+- Inferência de schema e tipos
 - Camada Bronze (Medallion Architecture)
 
 </br>
@@ -200,9 +210,9 @@ workshop-eneva/
 
 | # | Transformação | Camada | O que faz |
 | -- | -- | -- | -- |
-| 1 | **Explode + Tempo** | Silver | "Explode" o array de leituras em linhas e extrai ano/mês/dia/hora/**turno** |
-| 2 | **Enriquecimento de Usinas** | Silver | Join de `bronze_usinas` com `bronze_municipios` → região + submercado do SIN + população |
-| 3 | **Fator de Capacidade** | Silver | Join com `bronze_fabricantes` e cálculo de `fator_capacidade` vs referência do fabricante |
+| 1 | **Limpeza + Tempo** | Silver | Cast de tipos, extração de ano/mês/dia/hora/**turno** e Data Quality (descarta leituras inválidas) |
+| 2 | **Enriquecimento de Usinas** | Silver | Join de `dim_usinas` com `enriquecimento_municipios` → região + submercado do SIN + população |
+| 3 | **Fator de Capacidade** | Silver | Join com `enriquecimento_fabricantes` e cálculo de `fator_capacidade` vs referência do fabricante |
 | 4 | **Ranking com Janela** | Gold | Agregação por usina + `row_number()` (ranking) + `% de participação` na matriz |
 
 ### Instruções
@@ -222,7 +232,7 @@ workshop-eneva/
 ### Conceitos abordados
 - LakeFlow Designer (low-code / no-code)
 - Spark Declarative Pipelines (SDP)
-- `explode`, `join`, funções de janela (`window`)
+- Cast de tipos, `join`, funções de janela (`window`)
 - Data Quality Expectations
 - Medallion Architecture (Silver / Gold)
 
@@ -313,7 +323,7 @@ workshop-eneva/
 
 > **Se travar em algum TO-DO**, consulte a versão completa do notebook (sufixo `_completo.py`).
 
-> **O gerador de geração** precisa ficar rodando durante o Lab 1. Para gerar mais dados, execute-o novamente.
+> **No Lab 1**, use exatamente os nomes de arquivo como nome de tabela (ex.: `fato_geracao`) — os notebooks dos labs seguintes dependem desses nomes.
 
 </br>
 
@@ -330,7 +340,7 @@ DROP CATALOG IF EXISTS workshop_eneva_<seu_nome> CASCADE;
 
 * [Documentação LakeFlow / Spark Declarative Pipelines](https://docs.databricks.com/delta-live-tables/index.html)
 * [LakeFlow Designer](https://docs.databricks.com/ingestion/lakeflow-designer/index.html)
-* [Auto Loader](https://docs.databricks.com/ingestion/auto-loader/index.html)
+* [Criar tabela via upload de arquivo](https://docs.databricks.com/ingestion/add-data/upload-data.html)
 * [AI/BI Genie](https://docs.databricks.com/genie/index.html)
 * [AI/BI Dashboards](https://docs.databricks.com/dashboards/index.html)
 * [Unity Catalog](https://docs.databricks.com/data-governance/unity-catalog/index.html)

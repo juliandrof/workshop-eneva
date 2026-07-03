@@ -10,7 +10,7 @@
 # MAGIC
 # MAGIC | # | Transformação | Camada |
 # MAGIC | -- | -- | -- |
-# MAGIC | 1 | **Explode** do array de leituras + extração de data/hora/turno | Silver |
+# MAGIC | 1 | **Limpeza + Tempo**: cast de tipos, extração de data/hora/turno e Data Quality | Silver |
 # MAGIC | 2 | **Enriquecimento** das usinas com dados de município (região/submercado) | Silver |
 # MAGIC | 3 | **Enriquecimento** das unidades com fabricante + **fator de capacidade** | Silver |
 # MAGIC | 4 | **Agregação com janela**: ranking de usinas e % de participação na matriz | Gold |
@@ -47,58 +47,54 @@ catalog_name = f"workshop_eneva_{nome_participante}"
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## TRANSFORMAÇÃO 1 — Silver: Explode das leituras + tempo
+# MAGIC ## TRANSFORMAÇÃO 1 — Silver: Limpeza + Tempo
 # MAGIC
-# MAGIC Cada arquivo Bronze traz um array `leituras` (uma por unidade). Vamos "explodir"
-# MAGIC esse array em linhas e extrair componentes de tempo úteis para análise.
+# MAGIC A tabela `bronze.fato_geracao` veio de um upload de CSV/Excel: precisamos garantir os
+# MAGIC **tipos** corretos, derivar componentes de **tempo** (ano/mês/dia/hora/turno) e aplicar
+# MAGIC regras de **Data Quality** para descartar leituras inválidas.
 
 # COMMAND ----------
 
 @dlt.table(
     name="silver.silver_geracao",
-    comment="Leituras de geração explodidas, uma linha por unidade/hora",
+    comment="Leituras de geração limpas, tipadas e com features de tempo",
     table_properties={"quality": "silver"},
 )
 @dlt.expect_or_drop("geracao_nao_negativa", "geracao_mwh >= 0")
 @dlt.expect_or_drop("disponibilidade_valida", "disponibilidade BETWEEN 0 AND 1")
 def silver_geracao():
-    bronze = spark.read.table(f"{catalog_name}.bronze.bronze_geracao")
+    bronze = spark.read.table(f"{catalog_name}.bronze.fato_geracao")
 
     return (
         bronze
-        .withColumn("data_hora", to_timestamp("data_hora"))
-        # TRANSFORMAÇÃO 1 — TO-DO 1: explodir o array "leituras"
-        # ───────────────────────────────────────────────────────
-        # Dica: use explode("leituras").alias("leitura") dentro de um select,
-        #       mantendo também a coluna "data_hora".
-        #       Depois extraia os campos com col("leitura.<campo>").
-        .select(
-            "data_hora",
-            # explode(...).alias("leitura")   <- complete aqui
-        )
-        # Extração de tempo
-        .withColumn("ano", year("data_hora"))
-        .withColumn("mes", month("data_hora"))
-        .withColumn("dia", dayofmonth("data_hora"))
-        .withColumn("hora", hour("data_hora"))
-        # Turno de operação a partir da hora
+        # TRANSFORMAÇÃO 1 — TO-DO 1: garanta os tipos corretos das colunas
+        # ─────────────────────────────────────────────────────────────────
+        # A UI de upload pode inferir texto onde queremos número/timestamp.
+        # Dica: use .withColumn("<col>", col("<col>").cast("<tipo>"))
+        #   - data_hora          -> timestamp
+        #   - geracao_mwh        -> double
+        #   - consumo_combustivel-> double
+        #   - disponibilidade    -> double
+        #   - temperatura_c      -> double
+        # .withColumn("data_hora", col("data_hora").cast("timestamp"))   <- complete
+        # .withColumn("geracao_mwh", col("geracao_mwh").cast("double"))
+        # ... (demais colunas)
+
+        # TRANSFORMAÇÃO 1 — TO-DO 2: extraia ano, mês, dia e hora de data_hora
+        # ─────────────────────────────────────────────────────────────────────
+        # Dica: use year(), month(), dayofmonth() e hour() sobre "data_hora"
+        # .withColumn("ano", year("data_hora"))     <- complete
+        # .withColumn("mes", month("data_hora"))
+        # .withColumn("dia", dayofmonth("data_hora"))
+        # .withColumn("hora", hour("data_hora"))
+
+        # Turno de operação a partir da hora (já pronto — depende do TO-DO 2)
         .withColumn(
             "turno",
             when(col("hora").between(6, 11), "Manhã")
             .when(col("hora").between(12, 17), "Tarde")
             .when(col("hora").between(18, 23), "Noite")
             .otherwise("Madrugada")
-        )
-        # Campos das leituras (após o explode)
-        .select(
-            col("leitura.id_leitura").alias("id_leitura"),
-            col("leitura.id_unidade").alias("id_unidade"),
-            col("leitura.id_usina").alias("id_usina"),
-            "data_hora", "ano", "mes", "dia", "hora", "turno",
-            col("leitura.geracao_mwh").alias("geracao_mwh"),
-            col("leitura.consumo_combustivel").alias("consumo_combustivel"),
-            col("leitura.disponibilidade").alias("disponibilidade"),
-            col("leitura.temperatura_c").alias("temperatura_c"),
         )
     )
 
@@ -118,12 +114,12 @@ def silver_geracao():
     table_properties={"quality": "silver"},
 )
 def silver_usinas():
-    usinas = spark.read.table(f"{catalog_name}.bronze.bronze_usinas")
-    municipios = spark.read.table(f"{catalog_name}.bronze.bronze_municipios")
+    usinas = spark.read.table(f"{catalog_name}.bronze.dim_usinas")
+    municipios = spark.read.table(f"{catalog_name}.bronze.enriquecimento_municipios")
 
     return (
         usinas
-        # TRANSFORMAÇÃO 2 — TO-DO 2: enriquecer com municípios
+        # TRANSFORMAÇÃO 2 — TO-DO 3: enriquecer com municípios
         # ─────────────────────────────────────────────────────
         # Dica: faça um join de "usinas" com "municipios" pelas colunas
         #       ["municipio", "uf"] usando how="left".
@@ -153,8 +149,8 @@ def silver_usinas():
 )
 def silver_desempenho_unidades():
     geracao = dlt.read("silver.silver_geracao")
-    unidades = spark.read.table(f"{catalog_name}.bronze.bronze_unidades")
-    fabricantes = spark.read.table(f"{catalog_name}.bronze.bronze_fabricantes")
+    unidades = spark.read.table(f"{catalog_name}.bronze.dim_unidades_geradoras")
+    fabricantes = spark.read.table(f"{catalog_name}.bronze.enriquecimento_fabricantes")
 
     # Geração média por unidade
     agg = (
@@ -171,7 +167,7 @@ def silver_desempenho_unidades():
     return (
         agg
         .join(unidades, ["id_unidade", "id_usina"], "left")
-        # TRANSFORMAÇÃO 3 — TO-DO 3: enriquecer com fabricante e calcular métricas
+        # TRANSFORMAÇÃO 3 — TO-DO 4: enriquecer com fabricante e calcular métricas
         # ─────────────────────────────────────────────────────────────────────────
         # Dica 1: faça .join(fabricantes, "fabricante", "left")
         # Dica 2: crie a coluna "fator_capacidade" =
@@ -219,7 +215,7 @@ def gold_geracao_por_usina():
               "id_usina", "left")
     )
 
-    # TRANSFORMAÇÃO 4 — TO-DO 4: janela para ranking e % de participação
+    # TRANSFORMAÇÃO 4 — TO-DO 5: janela para ranking e % de participação
     # ────────────────────────────────────────────────────────────────────
     # Dica 1: defina uma janela global ordenada pela geração:
     #           w = Window.orderBy(desc("geracao_total_mwh"))

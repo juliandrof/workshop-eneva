@@ -67,17 +67,17 @@ def main():
     sw, sh = 3.2, 2.4
     sx, sy = 0.5, 8.9
     draw_box(ax, sx, sy, sw, sh, "#E8F5E9", "#0B3D2E", lw=4, ls="--")
-    ax.text(sx + sw/2, sy + sh/2, "Medidores\ndas Usinas\n(JSON Streaming)",
+    ax.text(sx + sw/2, sy + sh/2, "Arquivos\nCSV / XLSX\n(dados/)",
             ha="center", va="center", fontsize=FONT_SUB, fontweight="bold",
             color="#0B3D2E", zorder=5)
 
     # Main medallion stages
     stages = [
         ("BRONZE", "Ingestão (Lab 1)", "#FFF0E0", "#EF6C00",
-         ["Auto Loader (cloudFiles)", "Leituras de geração",
+         ["Upload manual (Create table)", "Fato de geração",
           "Dimensões + Enriquecimento", "Dados Brutos"]),
         ("SILVER", "Transformação (Lab 2)", "#E8F5E9", "#388E3C",
-         ["LakeFlow Designer", "Explode das leituras", "Enriquecimento (join)",
+         ["LakeFlow Designer", "Limpeza + Tempo", "Enriquecimento (join)",
           "Fator de Capacidade", "Data Quality"]),
         ("GOLD", "Agregação (Lab 2)", "#FFFDE7", "#F9A825",
          ["Geração por Usina + Ranking", "Geração por Fonte",

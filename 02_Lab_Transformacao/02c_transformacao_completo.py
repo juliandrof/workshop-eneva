@@ -8,7 +8,7 @@
 # MAGIC
 # MAGIC | # | Transformação | Camada |
 # MAGIC | -- | -- | -- |
-# MAGIC | 1 | **Explode** do array de leituras + extração de data/hora/turno | Silver |
+# MAGIC | 1 | **Limpeza + Tempo**: cast de tipos, extração de data/hora/turno e Data Quality | Silver |
 # MAGIC | 2 | **Enriquecimento** das usinas com dados de município (região/submercado) | Silver |
 # MAGIC | 3 | **Enriquecimento** das unidades com fabricante + **fator de capacidade** | Silver |
 # MAGIC | 4 | **Agregação com janela**: ranking de usinas e % de participação na matriz | Gold |
@@ -43,27 +43,29 @@ catalog_name = f"workshop_eneva_{nome_participante}"
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## TRANSFORMAÇÃO 1 — Silver: Explode das leituras + tempo
+# MAGIC ## TRANSFORMAÇÃO 1 — Silver: Limpeza + Tempo
 
 # COMMAND ----------
 
 @dlt.table(
     name="silver.silver_geracao",
-    comment="Leituras de geração explodidas, uma linha por unidade/hora",
+    comment="Leituras de geração limpas, tipadas e com features de tempo",
     table_properties={"quality": "silver"},
 )
 @dlt.expect_or_drop("geracao_nao_negativa", "geracao_mwh >= 0")
 @dlt.expect_or_drop("disponibilidade_valida", "disponibilidade BETWEEN 0 AND 1")
 def silver_geracao():
-    bronze = spark.read.table(f"{catalog_name}.bronze.bronze_geracao")
+    bronze = spark.read.table(f"{catalog_name}.bronze.fato_geracao")
 
     return (
         bronze
-        .withColumn("data_hora", to_timestamp("data_hora"))
-        .select(
-            "data_hora",
-            explode("leituras").alias("leitura"),
-        )
+        # Garante os tipos corretos (a UI de upload pode inferir texto)
+        .withColumn("data_hora", col("data_hora").cast("timestamp"))
+        .withColumn("geracao_mwh", col("geracao_mwh").cast("double"))
+        .withColumn("consumo_combustivel", col("consumo_combustivel").cast("double"))
+        .withColumn("disponibilidade", col("disponibilidade").cast("double"))
+        .withColumn("temperatura_c", col("temperatura_c").cast("double"))
+        # Features de tempo
         .withColumn("ano", year("data_hora"))
         .withColumn("mes", month("data_hora"))
         .withColumn("dia", dayofmonth("data_hora"))
@@ -74,16 +76,6 @@ def silver_geracao():
             .when(col("hora").between(12, 17), "Tarde")
             .when(col("hora").between(18, 23), "Noite")
             .otherwise("Madrugada")
-        )
-        .select(
-            col("leitura.id_leitura").alias("id_leitura"),
-            col("leitura.id_unidade").alias("id_unidade"),
-            col("leitura.id_usina").alias("id_usina"),
-            "data_hora", "ano", "mes", "dia", "hora", "turno",
-            col("leitura.geracao_mwh").alias("geracao_mwh"),
-            col("leitura.consumo_combustivel").alias("consumo_combustivel"),
-            col("leitura.disponibilidade").alias("disponibilidade"),
-            col("leitura.temperatura_c").alias("temperatura_c"),
         )
     )
 
@@ -100,8 +92,8 @@ def silver_geracao():
     table_properties={"quality": "silver"},
 )
 def silver_usinas():
-    usinas = spark.read.table(f"{catalog_name}.bronze.bronze_usinas")
-    municipios = spark.read.table(f"{catalog_name}.bronze.bronze_municipios")
+    usinas = spark.read.table(f"{catalog_name}.bronze.dim_usinas")
+    municipios = spark.read.table(f"{catalog_name}.bronze.enriquecimento_municipios")
 
     return (
         usinas
@@ -123,8 +115,8 @@ def silver_usinas():
 )
 def silver_desempenho_unidades():
     geracao = dlt.read("silver.silver_geracao")
-    unidades = spark.read.table(f"{catalog_name}.bronze.bronze_unidades")
-    fabricantes = spark.read.table(f"{catalog_name}.bronze.bronze_fabricantes")
+    unidades = spark.read.table(f"{catalog_name}.bronze.dim_unidades_geradoras")
+    fabricantes = spark.read.table(f"{catalog_name}.bronze.enriquecimento_fabricantes")
 
     agg = (
         geracao

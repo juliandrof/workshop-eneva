@@ -17,7 +17,12 @@ FONT_COL = 19
 FONT_TAG = 16
 
 LAYERS = [
-    ("RAW", "#EAF2FB", "#2979FF", [
+    ("ARQUIVOS (CSV/XLSX)", "#EAF2FB", "#2979FF", [
+        ("fato_geracao", [
+            ("id_leitura", "PK"), ("id_unidade", "FK"), ("id_usina", "FK"),
+            ("data_hora", ""), ("geracao_mwh", ""), ("consumo_combustivel", ""),
+            ("disponibilidade", ""), ("temperatura_c", ""),
+        ]),
         ("dim_usinas", [
             ("id_usina", "PK"), ("nome_usina", ""), ("fonte", ""),
             ("combustivel", ""), ("potencia_instalada_mw", ""),
@@ -27,30 +32,27 @@ LAYERS = [
             ("id_unidade", "PK"), ("codigo_unidade", ""), ("id_usina", "FK"),
             ("tecnologia", ""), ("fabricante", ""), ("potencia_nominal_mw", ""),
         ]),
-        ("enriquecimento_municipios", [
-            ("municipio", "PK"), ("uf", ""), ("regiao", ""),
-            ("submercado_sin", ""), ("populacao", ""),
-        ]),
-        ("enriquecimento_fabricantes", [
-            ("fabricante", "PK"), ("pais_origem", ""),
-            ("eficiencia_nominal_pct", ""), ("fator_disponibilidade_ref", ""),
+        ("enriquecimento_municipios / _fabricantes", [
+            ("municipio / fabricante", "PK"), ("regiao / pais_origem", ""),
+            ("submercado_sin", ""), ("eficiencia_nominal_pct", ""),
         ]),
     ]),
-    ("BRONZE", "#FFF0E0", "#EF6C00", [
-        ("bronze_geracao", [
-            ("id_usina", "FK"), ("data_hora", ""), ("leituras[]", ""),
-            ("arquivo_origem", ""), ("data_ingestao", ""),
+    ("BRONZE  (upload manual)", "#FFF0E0", "#EF6C00", [
+        ("fato_geracao", [
+            ("id_leitura", "PK"), ("id_unidade", "FK"), ("id_usina", "FK"),
+            ("data_hora", ""), ("geracao_mwh", ""), ("consumo_combustivel", ""),
+            ("disponibilidade", ""), ("temperatura_c", ""),
         ]),
-        ("bronze_usinas", [
+        ("dim_usinas", [
             ("id_usina", "PK"), ("nome_usina", ""), ("fonte", ""),
             ("combustivel", ""), ("municipio", ""), ("uf", ""),
         ]),
-        ("bronze_unidades", [
+        ("dim_unidades_geradoras", [
             ("id_unidade", "PK"), ("id_usina", "FK"), ("fabricante", ""),
             ("tecnologia", ""), ("potencia_nominal_mw", ""),
         ]),
-        ("bronze_municipios / bronze_fabricantes", [
-            ("(enriquecimento)", ""), ("regiao / pais_origem", ""),
+        ("enriquecimento_municipios / _fabricantes", [
+            ("municipio / fabricante", "PK"), ("regiao / pais_origem", ""),
             ("submercado_sin", ""), ("eficiencia_nominal_pct", ""),
         ]),
     ]),

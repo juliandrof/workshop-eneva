@@ -238,7 +238,7 @@ def build_agenda(sid):
     items = [
         ("00", "15 min", "Setup — Catálogo Unity Catalog e dados sintéticos"),
         ("—", "15 min", "Teoria — Data + AI Platform & Arquitetura Medallion"),
-        ("01", "30 min", "Lab 1 — Ingestão de Dados (Auto Loader)"),
+        ("01", "30 min", "Lab 1 — Ingestão de Dados (upload CSV/XLSX)"),
         ("02", "40 min", "Lab 2 — Transformação com LakeFlow Designer"),
         ("03", "30 min", "Lab 3 — Genie Space (linguagem natural)"),
         ("04", "30 min", "Lab 4 — AI/BI Dashboards"),
@@ -280,9 +280,9 @@ def build_setup(sid):
     reqs = content_slide(sid, "Setup Inicial  (15 min)")
     steps = [
         ("1", "Widget", "Preencha nome_participante\n(sem espaços, minúsculo)"),
-        ("2", "Catálogo", "Execute 00_configuracao_catalogo\nCria catálogo + 4 schemas + volume"),
-        ("3", "Dados", "Execute 01_dados_cadastrais\n15 usinas | ~60 unidades | enriquecimento"),
-        ("4", "Verificar", "Confira no Catalog Explorer\nse tudo foi criado corretamente"),
+        ("2", "Catálogo", "Execute 00_configuracao_catalogo\nCria catálogo + schemas Bronze/Silver/Gold"),
+        ("3", "Dados", "Baixe os arquivos da pasta dados/\n5 tabelas em CSV e XLSX"),
+        ("4", "Pronto", "No Lab 1 você fará o upload\nmanual para a camada Bronze"),
     ]
     for i, (num, title, desc) in enumerate(steps):
         x = 0.4 + i * 3.15
@@ -300,7 +300,7 @@ def build_setup(sid):
 def build_architecture(sid):
     reqs = content_slide(sid, "Arquitetura Medallion")
     layers = [
-        ("Medidores\nJSON", 0.3, TEAL, 2.0),
+        ("Arquivos\nCSV/XLSX", 0.3, TEAL, 2.0),
         ("Bronze", 2.9, {"red": 0.8, "green": 0.5, "blue": 0.2}, 2.0),
         ("Silver", 5.5, {"red": 0.22, "green": 0.56, "blue": 0.24}, 2.0),
         ("Gold", 8.1, YELLOW, 2.0),
@@ -313,14 +313,14 @@ def build_architecture(sid):
     for i in range(4):
         a = uid("a"); ax = 2.3 + i * 2.6
         reqs += [mk_shape(sid, a, "RIGHT_ARROW", ax, 2.8, 0.7, 0.7), mk_fill(a, MEDIUM_GRAY)]
-    descs = [("Leituras de\ngeração (stream)", 0.3), ("Ingestão\nAuto Loader", 2.9),
+    descs = [("Dados prontos\n(pasta dados/)", 0.3), ("Upload manual\n(Create table)", 2.9),
              ("Transformação\nLakeFlow Designer", 5.5), ("Agregações\nprontas p/ BI", 8.1),
              ("Linguagem natural\n+ Dashboards", 10.7)]
     for d, x in descs:
         dt = uid("d"); reqs += [mk_shape(sid, dt, "TEXT_BOX", x, 4.5, 2.0, 0.9),
                                  mk_text(dt, d), mk_style(dt, sz=11, color=DARK_GRAY), mk_para(dt, "CENTER", 135)]
     ft = uid("ft"); reqs += [mk_shape(sid, ft, "TEXT_BOX", 0.5, 5.8, 12.3, 0.5),
-                              mk_text(ft, "LakeFlow  •  Auto Loader  •  Unity Catalog  •  Delta Lake  •  Serverless"),
+                              mk_text(ft, "LakeFlow  •  Unity Catalog  •  Delta Lake  •  Serverless"),
                               mk_style(ft, bold=False, sz=13, color=GREEN), mk_para(ft, "CENTER")]
     return reqs
 
@@ -328,7 +328,7 @@ def build_architecture(sid):
 def build_teoria_plataforma(sid):
     reqs = content_slide(sid, "Data + AI Platform", "Uma plataforma única, do dado bruto à decisão")
     cards = [
-        ("Ingestão", "Traga dados de qualquer\nfonte com Auto Loader\ne LakeFlow Connect\n\n• Streaming e batch\n• Incremental\n• Sem código", TEAL),
+        ("Ingestão", "Traga planilhas e extrações\n(CSV/Excel) com upload\nmanual no Catalog\n\n• Create table\n• Inferência de schema\n• Sem código", TEAL),
         ("Transformação", "Modele os dados de forma\nvisual com o LakeFlow\nDesigner (low-code)\n\n• Silver / Gold\n• Data Quality\n• Linhagem automática", ORANGE),
         ("Consumo & IA", "Consuma em linguagem\nnatural (Genie) e crie\nDashboards AI/BI\n\n• Self-service\n• Governança única\n• Zero cópia de dados", PURPLE),
     ]
@@ -342,17 +342,17 @@ def build_teoria_plataforma(sid):
 
 
 def build_teoria_ingestao(sid):
-    reqs = content_slide(sid, "Teoria: Ingestão com Auto Loader")
+    reqs = content_slide(sid, "Teoria: Ingestão por Upload de Arquivos")
     cards = [
-        ("Auto Loader", "Detecta e ingere novos\narquivos automaticamente\n\n• cloudFiles\n• Schema evolution\n• Exactly-once", TEAL),
-        ("Camada Bronze", "Dados brutos, fiéis\nà fonte, com metadados\n\n• arquivo_origem\n• data_ingestao\n• Histórico completo", {"red": 0.8, "green": 0.5, "blue": 0.2}),
-        ("Streaming + Batch", "O mesmo código serve\npara os dois cenários\n\n• trigger availableNow\n• Contínuo ou sob demanda\n• Checkpoint automático", ORANGE),
+        ("Create table", "Suba CSV e Excel direto\npelo Catalog Explorer\n\n• Drag & drop\n• Sem escrever código\n• Ideal para planilhas", TEAL),
+        ("Inferência de Schema", "A UI detecta colunas\ne tipos automaticamente\n\n• First row = header\n• Ajuste os tipos\n• Prévia antes de criar", {"red": 0.8, "green": 0.5, "blue": 0.2}),
+        ("Camada Bronze", "As tabelas criadas ficam\nno schema bronze\n\n• Fato + dimensões\n• Enriquecimento\n• Base para o Lab 2", ORANGE),
     ]
     for i, (t, d, c) in enumerate(cards):
         x = 0.3 + i * 4.25
         reqs += benefit_card(sid, x, 1.5, 3.95, 4.8, t, d, c)
     nt = uid("nt"); reqs += [mk_shape(sid, nt, "TEXT_BOX", 0.5, 6.6, 12.3, 0.35),
-                              mk_text(nt, "No workshop: leituras horárias de geração das usinas chegam como JSON e viram a tabela Bronze"),
+                              mk_text(nt, "No workshop: suba os 5 arquivos da pasta dados/ para o schema bronze do seu catálogo"),
                               mk_style(nt, sz=11, color=MEDIUM_GRAY, italic=True), mk_para(nt, "CENTER")]
     return reqs
 
@@ -365,12 +365,12 @@ def build_teoria_lakeflow(sid):
     gt = uid("gt"); reqs += [mk_shape(sid, gt, "TEXT_BOX", 0.6, 1.7, 5.4, 0.5),
                               mk_text(gt, "O que é"), mk_style(gt, bold=True, sz=20, color=GREEN)]
     gd = uid("gd"); reqs += [mk_shape(sid, gd, "TEXT_BOX", 0.6, 2.3, 5.4, 4.4),
-        mk_text(gd, "Experiência visual (no-code)\npara construir pipelines de\ntransformação.\n\n• Arraste blocos: Join, Explode,\n  Aggregate, Filter, Window\n• Gera SDP por baixo\n• Data Quality em cada etapa\n• Linhagem (lineage) automática\n\nAcessível a perfis de negócio,\nnão apenas engenheiros de dados."),
+        mk_text(gd, "Experiência visual (no-code)\npara construir pipelines de\ntransformação.\n\n• Arraste blocos: Join,\n  Aggregate, Filter, Window\n• Gera SDP por baixo\n• Data Quality em cada etapa\n• Linhagem (lineage) automática\n\nAcessível a perfis de negócio,\nnão apenas engenheiros de dados."),
         mk_style(gd, sz=12, color=DARK_GRAY), mk_para(gd, "START", 150)]
     # right: 4 transformations
     rt = uid("rt"); reqs += [mk_shape(sid, rt, "TEXT_BOX", 7.0, 1.5, 6.0, 0.45),
                               mk_text(rt, "As 4 transformações do Lab"), mk_style(rt, bold=True, sz=18, color=GREEN)]
-    steps = [("1", "Explode + Tempo", "Array de leituras → linhas\n+ ano/mês/dia/turno", TEAL),
+    steps = [("1", "Limpeza + Tempo", "Cast de tipos + ano/mês/\ndia/turno + Data Quality", TEAL),
              ("2", "Enriquecer Usinas", "Join com municípios →\nregião + submercado SIN", ORANGE),
              ("3", "Fator de Capacidade", "Join com fabricantes →\ncálculo vs referência", RED),
              ("4", "Ranking (Window)", "Agrega por usina →\nranking + % participação", YELLOW)]
@@ -454,7 +454,7 @@ def build_resumo(sid):
     reqs = content_slide(sid, "Resumo & Próximos Passos")
     lt = uid("lt"); reqs += [mk_shape(sid, lt, "TEXT_BOX", 0.5, 1.4, 6.0, 0.45),
                               mk_text(lt, "O que aprendemos"), mk_style(lt, bold=True, sz=18, color=GREEN)]
-    labs = [("Lab 1 — Ingestão", "Auto Loader + camada Bronze", TEAL),
+    labs = [("Lab 1 — Ingestão", "Upload manual (CSV/XLSX) → Bronze", TEAL),
             ("Lab 2 — Transformação", "LakeFlow Designer: 4 transformações", ORANGE),
             ("Lab 3 — Genie", "Consumo em linguagem natural", RED),
             ("Lab 4 — AI/BI", "Dashboards interativos", PURPLE)]
@@ -468,7 +468,7 @@ def build_resumo(sid):
     rt = uid("rt"); reqs += [mk_shape(sid, rt, "TEXT_BOX", 7.0, 1.4, 6.0, 0.45),
                               mk_text(rt, "Próximos passos"), mk_style(rt, bold=True, sz=18, color=GREEN)]
     nb = uid("nb"); reqs += [mk_shape(sid, nb, "ROUND_RECTANGLE", 7.0, 2.0, 5.8, 4.2), mk_fill(nb, LIGHT_GRAY)]
-    next_steps = "→  Aplicar os conceitos nos dados reais da Eneva\n\n→  LakeFlow Connect p/ ingestão de fontes\n\n→  Unity Catalog para governança de ponta a ponta\n\n→  Databricks Assistant p/ produtividade\n\n→  Serverless compute p/ economia"
+    next_steps = "→  Aplicar os conceitos nos dados reais da Eneva\n\n→  Automatizar a ingestão (LakeFlow / conectores)\n\n→  Unity Catalog para governança de ponta a ponta\n\n→  Databricks Assistant p/ produtividade\n\n→  Serverless compute p/ economia"
     ns = uid("ns"); reqs += [mk_shape(sid, ns, "TEXT_BOX", 7.3, 2.3, 5.2, 3.6),
                               mk_text(ns, next_steps), mk_style(ns, sz=14, color=DARK_GRAY), mk_para(ns, "START", 150)]
     return reqs
@@ -617,18 +617,18 @@ def main():
 
     # hands-on slides
     batch_update(build_lab_handson("s_lab1", "1", "Ingestão de Dados", "30 min", [
-        ("Inicie o gerador de dados",
-         "Execute 01a_gerador_geracao_streaming.py — grava JSONs de geração no Volume (deixe rodando)"),
-        ("Complete os TO-DOs de ingestão",
-         "01b_ingestao_to_do.py — 3 TO-DOs: Auto Loader (cloudFiles) → bronze_unidades → 2 tabelas de enriquecimento"),
-        ("Verifique a camada Bronze",
-         "Rode a célula de verificação — 5 tabelas Bronze devem estar populadas"),
+        ("Baixe os arquivos",
+         "Pasta dados/ do repositório — 5 tabelas em CSV e XLSX (fato + dimensões + enriquecimento)"),
+        ("Suba via Catalog > Create table",
+         "Para cada arquivo: Catalog → schema bronze → Create table → Upload files → nome = nome do arquivo"),
+        ("Valide a camada Bronze",
+         "Execute 01b_validacao.py — as 5 tabelas Bronze devem estar populadas"),
     ]))
     batch_update(build_lab_handson("s_lab2", "2", "LakeFlow Designer", "40 min", [
         ("Leia o guia visual",
          "02a_guia_lakeflow_designer.py — passo a passo para montar o pipeline arrastando blocos"),
         ("Monte as 4 transformações",
-         "Explode + Tempo → Enriquecer Usinas → Fator de Capacidade → Ranking com Window (ou complete 02b)"),
+         "Limpeza + Tempo → Enriquecer Usinas → Fator de Capacidade → Ranking com Window (ou complete 02b)"),
         ("Crie e rode o pipeline",
          "ETL pipeline → pipeline_eneva_<nome> → Target catalog workshop_eneva_<nome> → Serverless → Start"),
     ]))

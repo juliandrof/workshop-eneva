@@ -24,6 +24,9 @@ print(f"Catálogo: {catalog_name}")
 
 # MAGIC %md
 # MAGIC ## Criando o Catálogo e Schemas
+# MAGIC
+# MAGIC Usamos a arquitetura **Medallion**: os dados entram em **Bronze** (via upload manual
+# MAGIC no Lab 1), são transformados em **Silver** e agregados em **Gold** (Lab 2).
 
 # COMMAND ----------
 
@@ -34,20 +37,11 @@ print(f"Catálogo '{catalog_name}' criado com sucesso!")
 # COMMAND ----------
 
 # Criar schemas para cada camada da arquitetura Medallion
-schemas = ["raw", "bronze", "silver", "gold"]
+schemas = ["bronze", "silver", "gold"]
 
 for schema in schemas:
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog_name}.{schema}")
     print(f"  Schema '{catalog_name}.{schema}' criado!")
-
-# COMMAND ----------
-
-# Criar volume para os dados de geração em streaming (JSON dos medidores)
-spark.sql(f"""
-    CREATE VOLUME IF NOT EXISTS {catalog_name}.raw.geracao_json
-    COMMENT 'Volume para arquivos JSON de leituras de geração em streaming'
-""")
-print(f"Volume '{catalog_name}.raw.geracao_json' criado!")
 
 # COMMAND ----------
 
@@ -64,9 +58,8 @@ print(f"\nCatálogo: {catalog_name}")
 print(f"\nSchemas:")
 for schema in schemas:
     print(f"  - {catalog_name}.{schema}")
-print(f"\nVolume:")
-print(f"  - {catalog_name}.raw.geracao_json")
 print(f"\n{'='*60}")
-print(f"Próximo passo: Execute o notebook '01_dados_cadastrais'")
-print(f"Use o mesmo nome_participante: {nome}")
+print(f"Próximo passo: Lab 1 — Ingestão de Dados")
+print(f"Faça o upload manual dos arquivos CSV/XLSX da pasta 'dados/'")
+print(f"para o schema '{catalog_name}.bronze' via Catalog > Create table.")
 print(f"{'='*60}")

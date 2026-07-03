@@ -12,5 +12,5 @@
   <text x="60" y="70" font-family="Inter, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#FF7033">LAB 01</text>
   <text x="60" y="120" font-family="Inter, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="white">Ingest&#227;o de Dados</text>
   <rect x="60" y="135" width="90" height="4" rx="2" fill="#FF3621"/>
-  <text x="60" y="170" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="400" fill="#7FB3A0">Auto Loader &#183; Camada Bronze &#183; Streaming de leituras</text>
+  <text x="60" y="170" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="400" fill="#7FB3A0">Upload manual de CSV/XLSX &#183; Camada Bronze</text>
 </svg>
