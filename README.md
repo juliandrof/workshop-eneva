@@ -154,10 +154,11 @@ Os dados já estão prontos na pasta [`dados/`](dados/) deste repositório, cada
 já estão no seu Workspace. Para fazer o upload no Lab 1, baixe-os para o seu computador em ZIP:
 
 1. No Databricks, abra **Workspace** e navegue até a sua **Git folder** `workshop-eneva`
-2. Clique com o botão direito na pasta **`dados`** (ou no menu **⋮** ao lado dela)
-3. Selecione **Export** > **Source file** — o Databricks gera um **arquivo `.zip`** com o conteúdo da pasta
-4. Salve o `.zip` no seu computador e **descompacte** (duplo clique no Windows/macOS)
-5. Dentro da pasta descompactada estarão os 10 arquivos (5 tabelas × CSV + XLSX):
+2. **Selecione a pasta `dados`**
+3. Clique nos **três pontos (⋮)** no lado direito
+4. Selecione **Download as** > **Source (.zip)**
+5. Salve o `.zip` no seu computador e **descompacte** (duplo clique no Windows/macOS)
+6. Dentro da pasta descompactada estarão os 10 arquivos (5 tabelas × CSV + XLSX):
 
 | Arquivo | Registros | Tipo | Descrição |
 | -- | -- | -- | -- |
