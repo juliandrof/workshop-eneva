@@ -156,7 +156,7 @@ já estão no seu Workspace. Para fazer o upload no Lab 1, baixe-os para o seu c
 1. No Databricks, abra **Workspace** e navegue até a sua **Git folder** `workshop-eneva`
 2. **Selecione a pasta `dados`**
 3. Clique nos **três pontos (⋮)** no lado direito
-4. Selecione **Download as** > **Source (.zip)**
+4. Selecione **Download as** > **Zip - Source**
 5. Salve o `.zip` no seu computador e **descompacte** (duplo clique no Windows/macOS)
 6. Dentro da pasta descompactada estarão os 10 arquivos (5 tabelas × CSV + XLSX):
 
