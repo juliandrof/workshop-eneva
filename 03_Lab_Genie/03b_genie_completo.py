@@ -12,9 +12,11 @@ dbutils.widgets.text("nome_participante", "", "Seu Nome (sem espaços/acentos)")
 
 nome = dbutils.widgets.get("nome_participante").strip().lower().replace(" ", "_")
 assert nome != "", "Por favor, preencha seu nome no widget acima!"
-catalog_name = f"workshop_eneva_{nome}"
+catalog_name = "workshop_eneva"
+schema_name = nome
 spark.sql(f"USE CATALOG {catalog_name}")
-print(f"Usando catálogo: {catalog_name}")
+spark.sql(f"USE SCHEMA {schema_name}")
+print(f"Usando: {catalog_name}.{schema_name}")
 
 # COMMAND ----------
 
@@ -24,19 +26,19 @@ print(f"Usando catálogo: {catalog_name}")
 # COMMAND ----------
 
 spark.sql(f"""
-    CREATE OR REPLACE VIEW {catalog_name}.gold.vw_geracao_detalhada AS
+    CREATE OR REPLACE VIEW {catalog_name}.{schema_name}.vw_geracao_detalhada AS
     SELECT
         g.data_hora, g.ano, g.mes, g.dia, g.turno,
         u.nome_usina, u.fonte, u.combustivel, u.municipio, u.uf,
         u.regiao, u.submercado_sin,
         g.geracao_mwh, g.consumo_combustivel, g.disponibilidade, g.temperatura_c
-    FROM {catalog_name}.silver.silver_geracao g
-    LEFT JOIN {catalog_name}.silver.silver_usinas u ON g.id_usina = u.id_usina
+    FROM {catalog_name}.{schema_name}.silver_geracao g
+    LEFT JOIN {catalog_name}.{schema_name}.silver_usinas u ON g.id_usina = u.id_usina
 """)
 print("View vw_geracao_detalhada criada!")
 
 spark.sql(f"""
-    CREATE OR REPLACE VIEW {catalog_name}.gold.vw_desempenho_usinas AS
+    CREATE OR REPLACE VIEW {catalog_name}.{schema_name}.vw_desempenho_usinas AS
     SELECT
         nome_usina, fonte, combustivel, uf, regiao, submercado_sin,
         ROUND(geracao_total_mwh, 2) AS geracao_total_mwh,
@@ -45,7 +47,7 @@ spark.sql(f"""
         potencia_instalada_mw,
         ranking,
         pct_participacao
-    FROM {catalog_name}.gold.gold_geracao_por_usina
+    FROM {catalog_name}.{schema_name}.gold_geracao_por_usina
 """)
 print("View vw_desempenho_usinas criada!")
 
@@ -57,15 +59,15 @@ print("View vw_desempenho_usinas criada!")
 # COMMAND ----------
 
 spark.sql(f"""
-    COMMENT ON TABLE {catalog_name}.gold.gold_geracao_por_fonte IS
+    COMMENT ON TABLE {catalog_name}.{schema_name}.gold_geracao_por_fonte IS
     'Geração agregada por fonte de energia (Termelétrica/Solar) e combustível, em MWh'
 """)
 spark.sql(f"""
-    COMMENT ON TABLE {catalog_name}.gold.gold_geracao_por_usina IS
+    COMMENT ON TABLE {catalog_name}.{schema_name}.gold_geracao_por_usina IS
     'Geração total por usina com ranking e participação percentual na matriz de geração da Eneva'
 """)
 spark.sql(f"""
-    COMMENT ON TABLE {catalog_name}.gold.gold_geracao_por_submercado IS
+    COMMENT ON TABLE {catalog_name}.{schema_name}.gold_geracao_por_submercado IS
     'Geração agregada por submercado do Sistema Interligado Nacional (SIN)'
 """)
 print("Comentários de tabela adicionados!")
@@ -86,7 +88,7 @@ comentarios_colunas = [
     ("gold_geracao_por_submercado", "geracao_total_mwh", "Energia total gerada no submercado, em MWh"),
 ]
 for tabela, coluna, comentario in comentarios_colunas:
-    spark.sql(f"ALTER TABLE {catalog_name}.gold.{tabela} "
+    spark.sql(f"ALTER TABLE {catalog_name}.{schema_name}.{tabela} "
               f"ALTER COLUMN {coluna} COMMENT '{comentario}'")
 print("Comentários de coluna adicionados!")
 
@@ -97,10 +99,9 @@ print("Comentários de coluna adicionados!")
 # MAGIC
 # MAGIC 1. Vá em **Genie** > **New**
 # MAGIC 2. **Título**: `Geração Eneva - <seu_nome>`
-# MAGIC 3. **Tabelas**:
-# MAGIC    - `gold.gold_geracao_por_usina`, `gold.gold_geracao_por_fonte`,
-# MAGIC      `gold.gold_geracao_por_submercado`
-# MAGIC    - `gold.vw_geracao_detalhada`, `gold.vw_desempenho_usinas`
+# MAGIC 3. **Tabelas** (todas em `workshop_eneva.<seu_nome>`):
+# MAGIC    - `gold_geracao_por_usina`, `gold_geracao_por_fonte`, `gold_geracao_por_submercado`
+# MAGIC    - `vw_geracao_detalhada`, `vw_desempenho_usinas`
 
 # COMMAND ----------
 

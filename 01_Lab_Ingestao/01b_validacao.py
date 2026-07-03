@@ -4,7 +4,7 @@
 # MAGIC
 # MAGIC **Lab 1 — Validação da Ingestão**
 # MAGIC
-# MAGIC Depois de fazer o upload manual dos 5 arquivos para o schema `bronze`
+# MAGIC Depois de fazer o upload manual dos 5 arquivos para o seu schema
 # MAGIC (veja `01a_guia_upload_dados.py`), execute este notebook para conferir se tudo
 # MAGIC foi ingerido corretamente.
 
@@ -16,14 +16,16 @@ dbutils.widgets.text("nome_participante", "", "Seu Nome (sem espaços/acentos)")
 
 nome = dbutils.widgets.get("nome_participante").strip().lower().replace(" ", "_")
 assert nome != "", "Por favor, preencha seu nome no widget acima!"
-catalog_name = f"workshop_eneva_{nome}"
+catalog_name = "workshop_eneva"
+schema_name = nome
 spark.sql(f"USE CATALOG {catalog_name}")
-print(f"Usando catálogo: {catalog_name}")
+spark.sql(f"USE SCHEMA {schema_name}")
+print(f"Usando: {catalog_name}.{schema_name}")
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 1. Conferir se as 5 tabelas Bronze existem e têm dados
+# MAGIC ## 1. Conferir se as 5 tabelas existem e têm dados
 
 # COMMAND ----------
 
@@ -36,19 +38,19 @@ esperado = {
 }
 
 print(f"\n{'='*60}")
-print("VALIDAÇÃO DA CAMADA BRONZE")
+print(f"VALIDAÇÃO — {catalog_name}.{schema_name}")
 print(f"{'='*60}")
 tudo_ok = True
 for tabela, qtd_esperada in esperado.items():
     try:
-        c = spark.table(f"{catalog_name}.bronze.{tabela}").count()
+        c = spark.table(f"{catalog_name}.{schema_name}.{tabela}").count()
         status = "✓" if c == qtd_esperada else "⚠"
         if c != qtd_esperada:
             tudo_ok = False
-        print(f"  {status} bronze.{tabela}: {c} linhas (esperado ~{qtd_esperada})")
+        print(f"  {status} {tabela}: {c} linhas (esperado ~{qtd_esperada})")
     except Exception:
         tudo_ok = False
-        print(f"  ✗ bronze.{tabela}: NÃO ENCONTRADA — faça o upload deste arquivo")
+        print(f"  ✗ {tabela}: NÃO ENCONTRADA — faça o upload deste arquivo")
 print(f"{'='*60}")
 print("Tudo certo! Siga para o Lab 2." if tudo_ok else
       "Revise os uploads faltantes/divergentes antes de seguir.")
@@ -62,7 +64,7 @@ print(f"{'='*60}")
 # COMMAND ----------
 
 display(
-    spark.table(f"{catalog_name}.bronze.fato_geracao")
+    spark.table(f"{catalog_name}.{schema_name}.fato_geracao")
     .orderBy("id_leitura")
     .limit(10)
 )
@@ -80,15 +82,15 @@ display(
 
 for tabela in esperado:
     try:
-        print(f"\n--- bronze.{tabela} ---")
-        spark.table(f"{catalog_name}.bronze.{tabela}").printSchema()
+        print(f"\n--- {tabela} ---")
+        spark.table(f"{catalog_name}.{schema_name}.{tabela}").printSchema()
     except Exception:
-        print(f"  (bronze.{tabela} ainda não existe)")
+        print(f"  ({tabela} ainda não existe)")
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Próximo passo
 # MAGIC
-# MAGIC Com a camada **Bronze** populada, siga para o **Lab 2 — Transformação** usando o
-# MAGIC **LakeFlow Designer** para construir as camadas Silver e Gold.
+# MAGIC Com as tabelas ingeridas, siga para o **Lab 2 — Transformação** usando o
+# MAGIC **LakeFlow Designer** para construir as tabelas Silver e Gold.

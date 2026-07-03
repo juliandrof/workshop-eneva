@@ -31,7 +31,7 @@ Workshop prático de Databricks personalizado para o time da **Eneva**, com foco
 
 | # | Lab | Tópicos | Duração |
 | -- | -- | -- | -- |
-| 00 | **Setup** | Configuração do catálogo personalizado (schemas Bronze/Silver/Gold) | 15 min |
+| 00 | **Setup** | Catálogo compartilhado `workshop_eneva` + schema pessoal (seu nome) | 15 min |
 | 01 | **Ingestão de Dados** | Upload manual de CSV/XLSX via Catalog (Create table), camada Bronze | 30 min |
 | 02 | **Transformação — LakeFlow Designer** | Silver/Gold, 4 transformações low-code, Data Quality | 40 min |
 | 03 | **Genie Space** | Consumo de dados em linguagem natural, instruções customizadas | 30 min |
@@ -74,16 +74,16 @@ do Lab 2. Todas as tabelas são ingeridas na camada **Bronze** por upload manual
 
 | Permissão | Recurso | Labs |
 | -- | -- | -- |
-| `CREATE CATALOG` | `workshop_eneva_<nome>` | 00 |
-| `CREATE SCHEMA` | `bronze`, `silver`, `gold` | 00 |
-| `USE CATALOG` / `USE SCHEMA` | Catálogo e schemas do participante | Todos |
-| `CREATE TABLE` / `SELECT` / `MODIFY` | Tabelas em todos os schemas (upload no Bronze) | Todos |
+| `CREATE CATALOG` | `workshop_eneva` (compartilhado — criado uma vez) | 00 |
+| `CREATE SCHEMA` | `workshop_eneva.<nome>` (schema pessoal) | 00 |
+| `USE CATALOG` / `USE SCHEMA` | Catálogo `workshop_eneva` e schema do participante | Todos |
+| `CREATE TABLE` / `SELECT` / `MODIFY` | Tabelas no schema do participante (upload no Lab 1) | Todos |
 | `CREATE PIPELINE` / `MANAGE` / `RUN` | Pipeline `pipeline_eneva_<nome>` | 02 |
-| `CREATE GENIE` / `USE GENIE` | Genie Space com tabelas Gold | 03 |
+| `CREATE GENIE` / `USE GENIE` | Genie Space com as tabelas Gold | 03 |
 | `CREATE DASHBOARD` | AI/BI Dashboard | 04 |
 | `USE CLUSTER` / `ATTACH` | Cluster ou Serverless | Todos |
 
-> **Dica:** O perfil de permissões mais simples é conceder **`USE CATALOG`** + **`ALL PRIVILEGES`** no catálogo pessoal do participante, além de acesso a compute e às funcionalidades de Pipelines, Genie e Dashboards.
+> **Dica:** O catálogo `workshop_eneva` é **compartilhado** e criado uma única vez (reaproveitado nas próximas execuções). Cada participante trabalha em um **schema com o próprio nome** (`workshop_eneva.<nome>`). O perfil de permissões mais simples é conceder **`ALL PRIVILEGES`** no catálogo `workshop_eneva`, além de acesso a compute, Pipelines, Genie e Dashboards.
 
 </br>
 
@@ -101,7 +101,7 @@ workshop-eneva/
 │   └── gerar_dados.py                    # Script que (re)gera os arquivos CSV/XLSX
 │
 ├── 00_Setup/
-│   └── 00_configuracao_catalogo.py       # Criação do catálogo + schemas Bronze/Silver/Gold
+│   └── 00_configuracao_catalogo.py       # Catálogo workshop_eneva + schema pessoal (seu nome)
 │
 ├── 01_Lab_Ingestao/
 │   ├── 01a_guia_upload_dados.py          # Guia passo-a-passo do upload manual (Create table)
@@ -137,13 +137,14 @@ workshop-eneva/
 
 4. Confirme em **Create Git folder** — todos os notebooks e a pasta `dados/` serão clonados
 
-### Passo 2: Configurar seu catálogo personalizado
+### Passo 2: Preparar seu schema pessoal
 
 1. Abra o notebook `00_Setup/00_configuracao_catalogo.py`
 2. Preencha o widget **nome_participante** com seu primeiro nome
    > ⚠️ Sem espaços, sem acentos, minúsculo. Ex: `joao`, `maria`, `carlos`
 3. Execute todas as células
-4. Seu catálogo será criado como: `workshop_eneva_<seu_nome>`
+4. O catálogo compartilhado `workshop_eneva` é criado (ou reaproveitado, se já existir) e o
+   seu schema pessoal fica em: `workshop_eneva.<seu_nome>` — é ali que ficarão todas as suas tabelas
 
 ### Passo 3: Baixar os dados do workshop
 
@@ -176,20 +177,20 @@ no **Lab 1**.
 
 ### Instruções
 
-1. **Suba cada arquivo** da pasta `dados/` para o schema `bronze` do seu catálogo:
-   1. No menu lateral, abra **Catalog** > `workshop_eneva_<seu_nome>` > schema **`bronze`**
+1. **Suba cada arquivo** da pasta `dados/` para o **seu schema** (`workshop_eneva.<seu_nome>`):
+   1. No menu lateral, abra **Catalog** > `workshop_eneva` > schema **`<seu_nome>`**
    2. Clique em **Create** > **Create table** (Upload files)
    3. Arraste o arquivo (ex.: `fato_geracao.csv`), mantenha **First row = header**
    4. **Table name** = nome do arquivo (ex.: `fato_geracao`) → **Create table**
    5. Repita para os 5 arquivos
 
-| Arquivo | Tabela Bronze |
+| Arquivo | Tabela resultante |
 | -- | -- |
-| `fato_geracao.csv` / `.xlsx` | `bronze.fato_geracao` |
-| `dim_usinas.csv` / `.xlsx` | `bronze.dim_usinas` |
-| `dim_unidades_geradoras.csv` / `.xlsx` | `bronze.dim_unidades_geradoras` |
-| `enriquecimento_municipios.csv` / `.xlsx` | `bronze.enriquecimento_municipios` |
-| `enriquecimento_fabricantes.csv` / `.xlsx` | `bronze.enriquecimento_fabricantes` |
+| `fato_geracao.csv` / `.xlsx` | `workshop_eneva.<nome>.fato_geracao` |
+| `dim_usinas.csv` / `.xlsx` | `workshop_eneva.<nome>.dim_usinas` |
+| `dim_unidades_geradoras.csv` / `.xlsx` | `workshop_eneva.<nome>.dim_unidades_geradoras` |
+| `enriquecimento_municipios.csv` / `.xlsx` | `workshop_eneva.<nome>.enriquecimento_municipios` |
+| `enriquecimento_fabricantes.csv` / `.xlsx` | `workshop_eneva.<nome>.enriquecimento_fabricantes` |
 
 2. **Valide** a ingestão executando `01b_validacao.py` (confere as 5 tabelas)
 
@@ -229,8 +230,8 @@ no **Lab 1**.
    1. Vá em **Jobs & Pipelines** > **ETL pipeline**
    2. **Pipeline name**: `pipeline_eneva_<seu_nome>`
    3. **Source code**: selecione `02c_transformacao_completo.py` (ou `02b_transformacao_to_do.py`)
-   4. **Target catalog**: `workshop_eneva_<seu_nome>`
-   5. **Target schema**: `default` (obrigatório na UI)
+   4. **Target catalog**: `workshop_eneva`
+   5. **Target schema**: `<seu_nome>` (o mesmo do Lab 1)
    6. Em **Configuration**, adicione: Key `pipeline.nome_participante` → Value `<seu_nome>`
    7. **Compute**: Serverless (recomendado)
    8. Clique em **Create** e depois em **Start**
@@ -336,8 +337,9 @@ no **Lab 1**.
 ## Limpeza (Pós-Workshop)
 
 ```sql
--- Substitua <seu_nome> pelo nome usado no workshop
-DROP CATALOG IF EXISTS workshop_eneva_<seu_nome> CASCADE;
+-- Substitua <seu_nome> pelo nome usado no workshop.
+-- Apague apenas o SEU schema — o catálogo workshop_eneva é compartilhado.
+DROP SCHEMA IF EXISTS workshop_eneva.<seu_nome> CASCADE;
 ```
 
 </br>

@@ -19,9 +19,11 @@ dbutils.widgets.text("nome_participante", "", "Seu Nome (sem espaços/acentos)")
 
 nome = dbutils.widgets.get("nome_participante").strip().lower().replace(" ", "_")
 assert nome != "", "Por favor, preencha seu nome no widget acima!"
-catalog_name = f"workshop_eneva_{nome}"
+catalog_name = "workshop_eneva"
+schema_name = nome
 spark.sql(f"USE CATALOG {catalog_name}")
-print(f"Usando catálogo: {catalog_name}")
+spark.sql(f"USE SCHEMA {schema_name}")
+print(f"Usando: {catalog_name}.{schema_name}")
 
 # COMMAND ----------
 
@@ -35,7 +37,7 @@ print(f"Usando catálogo: {catalog_name}")
 
 # View de geração detalhada por usina/hora (já pronta como exemplo)
 spark.sql(f"""
-    CREATE OR REPLACE VIEW {catalog_name}.gold.vw_geracao_detalhada AS
+    CREATE OR REPLACE VIEW {catalog_name}.{schema_name}.vw_geracao_detalhada AS
     SELECT
         g.data_hora,
         g.ano,
@@ -53,8 +55,8 @@ spark.sql(f"""
         g.consumo_combustivel,
         g.disponibilidade,
         g.temperatura_c
-    FROM {catalog_name}.silver.silver_geracao g
-    LEFT JOIN {catalog_name}.silver.silver_usinas u ON g.id_usina = u.id_usina
+    FROM {catalog_name}.{schema_name}.silver_geracao g
+    LEFT JOIN {catalog_name}.{schema_name}.silver_usinas u ON g.id_usina = u.id_usina
 """)
 print("View vw_geracao_detalhada criada!")
 
@@ -62,7 +64,7 @@ print("View vw_geracao_detalhada criada!")
 
 # TO-DO 1: Crie uma view de desempenho por usina
 # ────────────────────────────────────────────────
-# Dica: crie {catalog_name}.gold.vw_desempenho_usinas a partir de
+# Dica: crie {catalog_name}.{schema_name}.vw_desempenho_usinas a partir de
 #       gold.gold_geracao_por_usina, selecionando as colunas mais relevantes
 #       para negócio: nome_usina, fonte, combustivel, uf, regiao,
 #       geracao_total_mwh, disponibilidade_media, ranking, pct_participacao.
@@ -83,7 +85,7 @@ print("View vw_geracao_detalhada criada!")
 # Dica: use COMMENT ON TABLE ... IS '...'
 # Exemplo pronto (gold_geracao_por_fonte):
 spark.sql(f"""
-    COMMENT ON TABLE {catalog_name}.gold.gold_geracao_por_fonte IS
+    COMMENT ON TABLE {catalog_name}.{schema_name}.gold_geracao_por_fonte IS
     'Geração agregada por fonte de energia (Termelétrica/Solar) e combustível, em MWh'
 """)
 
@@ -98,7 +100,7 @@ spark.sql(f"""
 # ────────────────────────────────────────────────
 # Dica: ALTER TABLE ... ALTER COLUMN ... COMMENT '...'
 # Exemplo:
-#   spark.sql(f"ALTER TABLE {catalog_name}.gold.gold_geracao_por_usina "
+#   spark.sql(f"ALTER TABLE {catalog_name}.{schema_name}.gold_geracao_por_usina "
 #             f"ALTER COLUMN geracao_total_mwh COMMENT 'Energia total gerada no período, em MWh'")
 # Comente pelo menos: geracao_total_mwh, disponibilidade_media, pct_participacao
 
@@ -110,12 +112,12 @@ spark.sql(f"""
 # MAGIC
 # MAGIC 1. Vá em **Genie** (menu lateral) > **New**
 # MAGIC 2. **Título**: `Geração Eneva - <seu_nome>`
-# MAGIC 3. **Tabelas** (adicione todas as Gold + views):
-# MAGIC    - `workshop_eneva_<nome>.gold.gold_geracao_por_usina`
-# MAGIC    - `workshop_eneva_<nome>.gold.gold_geracao_por_fonte`
-# MAGIC    - `workshop_eneva_<nome>.gold.gold_geracao_por_submercado`
-# MAGIC    - `workshop_eneva_<nome>.gold.vw_geracao_detalhada`
-# MAGIC    - `workshop_eneva_<nome>.gold.vw_desempenho_usinas`
+# MAGIC 3. **Tabelas** (adicione todas as Gold + views, em `workshop_eneva.<seu_nome>`):
+# MAGIC    - `workshop_eneva.<nome>.gold_geracao_por_usina`
+# MAGIC    - `workshop_eneva.<nome>.gold_geracao_por_fonte`
+# MAGIC    - `workshop_eneva.<nome>.gold_geracao_por_submercado`
+# MAGIC    - `workshop_eneva.<nome>.vw_geracao_detalhada`
+# MAGIC    - `workshop_eneva.<nome>.vw_desempenho_usinas`
 
 # COMMAND ----------
 

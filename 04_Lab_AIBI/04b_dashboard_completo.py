@@ -12,9 +12,11 @@ dbutils.widgets.text("nome_participante", "", "Seu Nome (sem espaços/acentos)")
 
 nome = dbutils.widgets.get("nome_participante").strip().lower().replace(" ", "_")
 assert nome != "", "Por favor, preencha seu nome no widget acima!"
-catalog_name = f"workshop_eneva_{nome}"
+catalog_name = "workshop_eneva"
+schema_name = nome
 spark.sql(f"USE CATALOG {catalog_name}")
-print(f"Usando catálogo: {catalog_name}")
+spark.sql(f"USE SCHEMA {schema_name}")
+print(f"Usando: {catalog_name}.{schema_name}")
 
 # COMMAND ----------
 
@@ -29,7 +31,7 @@ display(spark.sql(f"""
         COUNT(DISTINCT nome_usina) AS usinas_ativas,
         ROUND(AVG(disponibilidade), 4) AS disponibilidade_media,
         ROUND(SUM(consumo_combustivel), 2) AS combustivel_total
-    FROM {catalog_name}.gold.vw_geracao_detalhada
+    FROM {catalog_name}.{schema_name}.vw_geracao_detalhada
 """))
 
 # COMMAND ----------
@@ -55,14 +57,14 @@ SELECT
     COUNT(DISTINCT nome_usina) AS usinas_ativas,
     ROUND(AVG(disponibilidade), 4) AS disponibilidade_media,
     ROUND(SUM(consumo_combustivel), 2) AS combustivel_total
-FROM {catalog_name}.gold.vw_geracao_detalhada
+FROM {catalog_name}.{schema_name}.vw_geracao_detalhada
 """,
 
     "Geração por Fonte": f"""
 SELECT fonte, combustivel,
        ROUND(geracao_total_mwh, 2) AS geracao_mwh,
        num_usinas
-FROM {catalog_name}.gold.gold_geracao_por_fonte
+FROM {catalog_name}.{schema_name}.gold_geracao_por_fonte
 ORDER BY geracao_total_mwh DESC
 """,
 
@@ -70,7 +72,7 @@ ORDER BY geracao_total_mwh DESC
 SELECT ranking, nome_usina, fonte, uf,
        ROUND(geracao_total_mwh, 2) AS geracao_mwh,
        pct_participacao
-FROM {catalog_name}.gold.gold_geracao_por_usina
+FROM {catalog_name}.{schema_name}.gold_geracao_por_usina
 ORDER BY ranking
 """,
 
@@ -78,14 +80,14 @@ ORDER BY ranking
 SELECT submercado_sin, regiao,
        ROUND(geracao_total_mwh, 2) AS geracao_mwh,
        num_usinas, num_estados
-FROM {catalog_name}.gold.gold_geracao_por_submercado
+FROM {catalog_name}.{schema_name}.gold_geracao_por_submercado
 ORDER BY geracao_total_mwh DESC
 """,
 
     "Geração por Turno": f"""
 SELECT turno, fonte,
        ROUND(SUM(geracao_mwh), 2) AS geracao_mwh
-FROM {catalog_name}.gold.vw_geracao_detalhada
+FROM {catalog_name}.{schema_name}.vw_geracao_detalhada
 GROUP BY turno, fonte
 ORDER BY
     CASE turno WHEN 'Madrugada' THEN 1 WHEN 'Manhã' THEN 2
@@ -96,7 +98,7 @@ ORDER BY
     "Disponibilidade por Usina": f"""
 SELECT nome_usina, fonte,
        ROUND(disponibilidade_media * 100, 1) AS disponibilidade_pct
-FROM {catalog_name}.gold.gold_geracao_por_usina
+FROM {catalog_name}.{schema_name}.gold_geracao_por_usina
 ORDER BY disponibilidade_media DESC
 """,
 }

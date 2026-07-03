@@ -4,7 +4,7 @@
 # MAGIC
 # MAGIC **Lab 2 — Transformação de Dados com LakeFlow Designer (versão completa / referência)**
 # MAGIC
-# MAGIC Pipeline declarativo com as **4 transformações** que constroem Silver e Gold:
+# MAGIC Pipeline declarativo com as **4 transformações** que constroem as tabelas Silver e Gold:
 # MAGIC
 # MAGIC | # | Transformação | Camada |
 # MAGIC | -- | -- | -- |
@@ -12,6 +12,9 @@
 # MAGIC | 2 | **Enriquecimento** das usinas com dados de município (região/submercado) | Silver |
 # MAGIC | 3 | **Enriquecimento** das unidades com fabricante + **fator de capacidade** | Silver |
 # MAGIC | 4 | **Agregação com janela**: ranking de usinas e % de participação na matriz | Gold |
+# MAGIC
+# MAGIC > As camadas Bronze/Silver/Gold são identificadas pelo **prefixo do nome** das tabelas
+# MAGIC > (`silver_*`, `gold_*`), todas dentro do seu schema `workshop_eneva.<seu_nome>`.
 
 # COMMAND ----------
 
@@ -29,8 +32,8 @@ from pyspark.sql.window import Window
 # MAGIC > 1. Vá em **Jobs & Pipelines** > **ETL pipeline**
 # MAGIC > 2. **Pipeline name**: `pipeline_eneva_<seu_nome>`
 # MAGIC > 3. **Source code**: selecione este notebook
-# MAGIC > 4. **Target catalog**: `workshop_eneva_<seu_nome>`
-# MAGIC > 5. **Target schema**: `default`
+# MAGIC > 4. **Target catalog**: `workshop_eneva`
+# MAGIC > 5. **Target schema**: `<seu_nome>` (o mesmo do Lab 1)
 # MAGIC > 6. **Configuration** → adicione: `pipeline.nome_participante` = `<seu_nome>`
 # MAGIC > 7. **Compute**: Serverless (recomendado)
 # MAGIC > 8. Clique em **Create** e depois **Start**
@@ -38,7 +41,8 @@ from pyspark.sql.window import Window
 # COMMAND ----------
 
 nome_participante = spark.conf.get("pipeline.nome_participante", "default")
-catalog_name = f"workshop_eneva_{nome_participante}"
+catalog_name = "workshop_eneva"
+schema_name = nome_participante
 
 # COMMAND ----------
 
@@ -48,14 +52,14 @@ catalog_name = f"workshop_eneva_{nome_participante}"
 # COMMAND ----------
 
 @dlt.table(
-    name="silver.silver_geracao",
+    name="silver_geracao",
     comment="Leituras de geração limpas, tipadas e com features de tempo",
     table_properties={"quality": "silver"},
 )
 @dlt.expect_or_drop("geracao_nao_negativa", "geracao_mwh >= 0")
 @dlt.expect_or_drop("disponibilidade_valida", "disponibilidade BETWEEN 0 AND 1")
 def silver_geracao():
-    bronze = spark.read.table(f"{catalog_name}.bronze.fato_geracao")
+    bronze = spark.read.table(f"{catalog_name}.{schema_name}.fato_geracao")
 
     return (
         bronze
@@ -87,13 +91,13 @@ def silver_geracao():
 # COMMAND ----------
 
 @dlt.table(
-    name="silver.silver_usinas",
+    name="silver_usinas",
     comment="Dimensão de usinas enriquecida com dados de município",
     table_properties={"quality": "silver"},
 )
 def silver_usinas():
-    usinas = spark.read.table(f"{catalog_name}.bronze.dim_usinas")
-    municipios = spark.read.table(f"{catalog_name}.bronze.enriquecimento_municipios")
+    usinas = spark.read.table(f"{catalog_name}.{schema_name}.dim_usinas")
+    municipios = spark.read.table(f"{catalog_name}.{schema_name}.enriquecimento_municipios")
 
     return (
         usinas
@@ -109,14 +113,14 @@ def silver_usinas():
 # COMMAND ----------
 
 @dlt.table(
-    name="silver.silver_desempenho_unidades",
+    name="silver_desempenho_unidades",
     comment="Desempenho por unidade geradora com fator de capacidade vs referência",
     table_properties={"quality": "silver"},
 )
 def silver_desempenho_unidades():
-    geracao = dlt.read("silver.silver_geracao")
-    unidades = spark.read.table(f"{catalog_name}.bronze.dim_unidades_geradoras")
-    fabricantes = spark.read.table(f"{catalog_name}.bronze.enriquecimento_fabricantes")
+    geracao = dlt.read("silver_geracao")
+    unidades = spark.read.table(f"{catalog_name}.{schema_name}.dim_unidades_geradoras")
+    fabricantes = spark.read.table(f"{catalog_name}.{schema_name}.enriquecimento_fabricantes")
 
     agg = (
         geracao
@@ -151,13 +155,13 @@ def silver_desempenho_unidades():
 # COMMAND ----------
 
 @dlt.table(
-    name="gold.gold_geracao_por_usina",
+    name="gold_geracao_por_usina",
     comment="Geração total por usina com ranking e participação percentual",
     table_properties={"quality": "gold"},
 )
 def gold_geracao_por_usina():
-    geracao = dlt.read("silver.silver_geracao")
-    usinas = dlt.read("silver.silver_usinas")
+    geracao = dlt.read("silver_geracao")
+    usinas = dlt.read("silver_usinas")
 
     base = (
         geracao
@@ -193,13 +197,13 @@ def gold_geracao_por_usina():
 # COMMAND ----------
 
 @dlt.table(
-    name="gold.gold_geracao_por_fonte",
+    name="gold_geracao_por_fonte",
     comment="Geração agregada por fonte de energia",
     table_properties={"quality": "gold"},
 )
 def gold_geracao_por_fonte():
-    geracao = dlt.read("silver.silver_geracao")
-    usinas = dlt.read("silver.silver_usinas")
+    geracao = dlt.read("silver_geracao")
+    usinas = dlt.read("silver_usinas")
 
     return (
         geracao
@@ -222,13 +226,13 @@ def gold_geracao_por_fonte():
 # COMMAND ----------
 
 @dlt.table(
-    name="gold.gold_geracao_por_submercado",
+    name="gold_geracao_por_submercado",
     comment="Geração agregada por submercado do Sistema Interligado Nacional",
     table_properties={"quality": "gold"},
 )
 def gold_geracao_por_submercado():
-    geracao = dlt.read("silver.silver_geracao")
-    usinas = dlt.read("silver.silver_usinas")
+    geracao = dlt.read("silver_geracao")
+    usinas = dlt.read("silver_usinas")
 
     return (
         geracao

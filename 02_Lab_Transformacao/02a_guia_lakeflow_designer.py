@@ -17,24 +17,27 @@
 # MAGIC 1. No menu lateral, vá em **Jobs & Pipelines** > **Create** > **ETL Pipeline**
 # MAGIC 2. Escolha **Use the LakeFlow Designer** (experiência visual / no-code)
 # MAGIC 3. **Nome do pipeline**: `pipeline_eneva_<seu_nome>`
-# MAGIC 4. **Catálogo de destino**: `workshop_eneva_<seu_nome>` — **Schema**: `default`
+# MAGIC 4. **Catálogo de destino**: `workshop_eneva` — **Schema**: `<seu_nome>` (o mesmo do Lab 1)
 # MAGIC
 # MAGIC ### Fontes de dados (nós de entrada)
-# MAGIC Adicione como fontes as tabelas Bronze que você subiu no Lab 1:
-# MAGIC - `bronze.fato_geracao`
-# MAGIC - `bronze.dim_usinas`
-# MAGIC - `bronze.dim_unidades_geradoras`
-# MAGIC - `bronze.enriquecimento_municipios`
-# MAGIC - `bronze.enriquecimento_fabricantes`
+# MAGIC Adicione como fontes as tabelas que você subiu no Lab 1 (em `workshop_eneva.<seu_nome>`):
+# MAGIC - `fato_geracao`
+# MAGIC - `dim_usinas`
+# MAGIC - `dim_unidades_geradoras`
+# MAGIC - `enriquecimento_municipios`
+# MAGIC - `enriquecimento_fabricantes`
 # MAGIC
 # MAGIC ### As 4 transformações (blocos visuais)
 # MAGIC
+# MAGIC As camadas são identificadas pelo **prefixo** do nome (`silver_*`, `gold_*`), todas no
+# MAGIC seu schema `workshop_eneva.<seu_nome>`.
+# MAGIC
 # MAGIC | # | Bloco no Designer | O que fazer | Resultado |
 # MAGIC | -- | -- | -- | -- |
-# MAGIC | 1 | **Cast + Derive** | Ajustar tipos de `fato_geracao` e derivar `ano/mês/dia/hora/turno` | `silver.silver_geracao` |
-# MAGIC | 2 | **Join** | Juntar `dim_usinas` + `enriquecimento_municipios` por `município + uf` | `silver.silver_usinas` |
-# MAGIC | 3 | **Join + Compute** | Juntar geração agregada + `dim_unidades_geradoras` + `enriquecimento_fabricantes` e calcular `fator_capacidade` | `silver.silver_desempenho_unidades` |
-# MAGIC | 4 | **Aggregate + Window** | Agregar geração por usina, `row_number()` para ranking e `% participação` | `gold.gold_geracao_por_usina` |
+# MAGIC | 1 | **Cast + Derive** | Ajustar tipos de `fato_geracao` e derivar `ano/mês/dia/hora/turno` | `silver_geracao` |
+# MAGIC | 2 | **Join** | Juntar `dim_usinas` + `enriquecimento_municipios` por `município + uf` | `silver_usinas` |
+# MAGIC | 3 | **Join + Compute** | Juntar geração agregada + `dim_unidades_geradoras` + `enriquecimento_fabricantes` e calcular `fator_capacidade` | `silver_desempenho_unidades` |
+# MAGIC | 4 | **Aggregate + Window** | Agregar geração por usina, `row_number()` para ranking e `% participação` | `gold_geracao_por_usina` |
 # MAGIC
 # MAGIC ### Data Quality (Expectations)
 # MAGIC No bloco da transformação 1, adicione regras de qualidade (no Designer é o painel
@@ -72,16 +75,17 @@
 dbutils.widgets.text("nome_participante", "", "Seu Nome (sem espaços/acentos)")
 nome = dbutils.widgets.get("nome_participante").strip().lower().replace(" ", "_")
 if nome:
-    catalog_name = f"workshop_eneva_{nome}"
-    for schema, tabelas in [
-        ("silver", ["silver_geracao", "silver_usinas", "silver_desempenho_unidades"]),
-        ("gold", ["gold_geracao_por_usina", "gold_geracao_por_fonte", "gold_geracao_por_submercado"]),
-    ]:
-        for t in tabelas:
-            try:
-                c = spark.table(f"{catalog_name}.{schema}.{t}").count()
-                print(f"  ✓ {schema}.{t}: {c} registros")
-            except Exception:
-                print(f"  ✗ {schema}.{t}: ainda não criada — rode o pipeline")
+    catalog_name = "workshop_eneva"
+    schema_name = nome
+    tabelas = [
+        "silver_geracao", "silver_usinas", "silver_desempenho_unidades",
+        "gold_geracao_por_usina", "gold_geracao_por_fonte", "gold_geracao_por_submercado",
+    ]
+    for t in tabelas:
+        try:
+            c = spark.table(f"{catalog_name}.{schema_name}.{t}").count()
+            print(f"  ✓ {t}: {c} registros")
+        except Exception:
+            print(f"  ✗ {t}: ainda não criada — rode o pipeline")
 else:
     print("Preencha o widget nome_participante para verificar as tabelas.")

@@ -280,7 +280,7 @@ def build_setup(sid):
     reqs = content_slide(sid, "Setup Inicial  (15 min)")
     steps = [
         ("1", "Widget", "Preencha nome_participante\n(sem espaços, minúsculo)"),
-        ("2", "Catálogo", "Execute 00_configuracao_catalogo\nCria catálogo + schemas Bronze/Silver/Gold"),
+        ("2", "Schema", "Execute 00_configuracao_catalogo\nCatálogo workshop_eneva + seu schema"),
         ("3", "Dados", "Baixe os arquivos da pasta dados/\n5 tabelas em CSV e XLSX"),
         ("4", "Pronto", "No Lab 1 você fará o upload\nmanual para a camada Bronze"),
     ]
@@ -346,13 +346,13 @@ def build_teoria_ingestao(sid):
     cards = [
         ("Create table", "Suba CSV e Excel direto\npelo Catalog Explorer\n\n• Drag & drop\n• Sem escrever código\n• Ideal para planilhas", TEAL),
         ("Inferência de Schema", "A UI detecta colunas\ne tipos automaticamente\n\n• First row = header\n• Ajuste os tipos\n• Prévia antes de criar", {"red": 0.8, "green": 0.5, "blue": 0.2}),
-        ("Camada Bronze", "As tabelas criadas ficam\nno schema bronze\n\n• Fato + dimensões\n• Enriquecimento\n• Base para o Lab 2", ORANGE),
+        ("Seu schema", "As tabelas criadas ficam\nem workshop_eneva.<nome>\n\n• Fato + dimensões\n• Enriquecimento\n• Base para o Lab 2", ORANGE),
     ]
     for i, (t, d, c) in enumerate(cards):
         x = 0.3 + i * 4.25
         reqs += benefit_card(sid, x, 1.5, 3.95, 4.8, t, d, c)
     nt = uid("nt"); reqs += [mk_shape(sid, nt, "TEXT_BOX", 0.5, 6.6, 12.3, 0.35),
-                              mk_text(nt, "No workshop: suba os 5 arquivos da pasta dados/ para o schema bronze do seu catálogo"),
+                              mk_text(nt, "No workshop: suba os 5 arquivos da pasta dados/ para o seu schema (workshop_eneva.<nome>)"),
                               mk_style(nt, sz=11, color=MEDIUM_GRAY, italic=True), mk_para(nt, "CENTER")]
     return reqs
 
@@ -620,7 +620,7 @@ def main():
         ("Baixe os arquivos",
          "Pasta dados/ do repositório — 5 tabelas em CSV e XLSX (fato + dimensões + enriquecimento)"),
         ("Suba via Catalog > Create table",
-         "Para cada arquivo: Catalog → schema bronze → Create table → Upload files → nome = nome do arquivo"),
+         "Para cada arquivo: Catalog → workshop_eneva → seu schema → Create table → Upload files"),
         ("Valide a camada Bronze",
          "Execute 01b_validacao.py — as 5 tabelas Bronze devem estar populadas"),
     ]))
@@ -630,7 +630,7 @@ def main():
         ("Monte as 4 transformações",
          "Limpeza + Tempo → Enriquecer Usinas → Fator de Capacidade → Ranking com Window (ou complete 02b)"),
         ("Crie e rode o pipeline",
-         "ETL pipeline → pipeline_eneva_<nome> → Target catalog workshop_eneva_<nome> → Serverless → Start"),
+         "ETL pipeline → pipeline_eneva_<nome> → catalog workshop_eneva, schema <nome> → Serverless → Start"),
     ]))
     batch_update(build_lab_handson("s_lab3", "3", "Genie Space", "30 min", [
         ("Complete os TO-DOs",
