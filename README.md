@@ -125,11 +125,17 @@ workshop-eneva/
 
 ## Como Começar
 
-### Passo 1: Importar os notebooks
+### Passo 1: Importar os notebooks (Git folder)
 
 1. No Databricks, vá em **Workspace** > **Users** > seu usuário
-2. Clique em **Import** > selecione **URL** e cole o link deste repositório
-3. Ou clone via Git: `Repos` > `Add Repo` > cole a URL do GitHub
+2. Clique em **Create** > **Git folder**
+3. Cole a **URL do repositório** no campo *Git repository URL* (use o botão de copiar 📋 abaixo):
+
+   ```
+   https://github.com/juliandrof/workshop-eneva.git
+   ```
+
+4. Confirme em **Create Git folder** — todos os notebooks e a pasta `dados/` serão clonados
 
 ### Passo 2: Configurar seu catálogo personalizado
 
