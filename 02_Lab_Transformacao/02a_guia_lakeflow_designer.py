@@ -4,71 +4,109 @@
 # MAGIC
 # MAGIC **Lab 2 — Guia visual do LakeFlow Designer (low-code)**
 # MAGIC
-# MAGIC O **LakeFlow Designer** é a experiência **visual e sem código** para construir
-# MAGIC pipelines de transformação no Databricks. Você monta o fluxo arrastando blocos e o
-# MAGIC Designer gera, por baixo, um pipeline declarativo (SDP) — exatamente o código dos
-# MAGIC notebooks `02b`/`02c`.
+# MAGIC O **LakeFlow Designer** é a experiência **visual e sem código** ("Visual data prep")
+# MAGIC para preparar e transformar dados no Databricks. Você monta o fluxo arrastando
+# MAGIC **operadores** em um canvas — o Designer gera, por baixo, um pipeline declarativo com
+# MAGIC o mesmo resultado do código dos notebooks `02b`/`02c`.
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Passo a passo no LakeFlow Designer
+# MAGIC ## 1. Abrir o LakeFlow Designer (Visual data prep)
 # MAGIC
-# MAGIC 1. No menu lateral, vá em **Jobs & Pipelines** > **Create** > **ETL Pipeline**
-# MAGIC 2. Escolha **Use the LakeFlow Designer** (experiência visual / no-code)
-# MAGIC 3. **Nome do pipeline**: `pipeline_eneva_<seu_nome>`
-# MAGIC 4. **Catálogo de destino**: `workshop_eneva` — **Schema**: `<seu_nome>` (o mesmo do Lab 1)
+# MAGIC 1. Na **barra lateral esquerda**, clique no ícone **+ (New)**
+# MAGIC 2. Selecione **Visual data prep**
+# MAGIC 3. Abre o **canvas** em branco com a tela de boas-vindas
 # MAGIC
-# MAGIC ### Fontes de dados (nós de entrada)
-# MAGIC Adicione como fontes as tabelas que você subiu no Lab 1 (em `workshop_eneva.<seu_nome>`):
-# MAGIC - `fato_geracao`
-# MAGIC - `dim_usinas`
-# MAGIC - `dim_unidades_geradoras`
-# MAGIC - `enriquecimento_municipios`
-# MAGIC - `enriquecimento_fabricantes`
+# MAGIC > O rascunho é salvo automaticamente. Você pode renomeá-lo no topo para
+# MAGIC > `visual_prep_eneva_<seu_nome>`.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 2. Adicionar as fontes de dados (operador Source)
 # MAGIC
-# MAGIC ### As 4 transformações (blocos visuais)
+# MAGIC Para cada tabela que você ingeriu no Lab 1:
 # MAGIC
-# MAGIC As camadas são identificadas pelo **prefixo** do nome (`silver_*`, `gold_*`), todas no
-# MAGIC seu schema `workshop_eneva.<seu_nome>`.
+# MAGIC 1. Na tela de boas-vindas, clique em **Select source operator** (ou, no canvas, abra o
+# MAGIC    menu de operadores e escolha **Source**)
+# MAGIC 2. Na aba de configuração, escolha **Browse** e selecione a tabela existente em
+# MAGIC    `workshop_eneva` > `<seu_nome>`
+# MAGIC 3. Repita para as 5 tabelas de entrada:
+# MAGIC    - `fato_geracao`
+# MAGIC    - `dim_usinas`
+# MAGIC    - `dim_unidades_geradoras`
+# MAGIC    - `enriquecimento_municipios`
+# MAGIC    - `enriquecimento_fabricantes`
 # MAGIC
-# MAGIC | # | Bloco no Designer | O que fazer | Resultado |
+# MAGIC > Para **conectar** operadores, arraste da bolinha de **saída** (borda direita) de um
+# MAGIC > operador até a bolinha de **entrada** (borda esquerda) do próximo.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 3. As 4 transformações (operadores no canvas)
+# MAGIC
+# MAGIC Abra o **menu de operadores** (painel à esquerda) e arraste cada operador para o canvas.
+# MAGIC Para configurar um operador, dê **duplo clique** nele (ou clique no ícone de **lápis**).
+# MAGIC As camadas são identificadas pelo **prefixo** do nome da tabela de saída
+# MAGIC (`silver_*`, `gold_*`), todas no seu schema `workshop_eneva.<seu_nome>`.
+# MAGIC
+# MAGIC | # | A partir de | Operadores no Designer | Resultado (Output) |
 # MAGIC | -- | -- | -- | -- |
-# MAGIC | 1 | **Cast + Derive** | Ajustar tipos de `fato_geracao` e derivar `ano/mês/dia/hora/turno` | `silver_geracao` |
-# MAGIC | 2 | **Join** | Juntar `dim_usinas` + `enriquecimento_municipios` por `município + uf` | `silver_usinas` |
-# MAGIC | 3 | **Join + Compute** | Juntar geração agregada + `dim_unidades_geradoras` + `enriquecimento_fabricantes` e calcular `fator_capacidade` | `silver_desempenho_unidades` |
-# MAGIC | 4 | **Aggregate + Window** | Agregar geração por usina, `row_number()` para ranking e `% participação` | `gold_geracao_por_usina` |
+# MAGIC | 1 | `fato_geracao` | **Compute/Derived columns** (cast de tipos + `ano/mês/dia/hora/turno`) + **Filter** (`geracao_mwh >= 0` e `disponibilidade BETWEEN 0 AND 1`) | `silver_geracao` |
+# MAGIC | 2 | `dim_usinas` + `enriquecimento_municipios` | **Join** por `municipio` + `uf` | `silver_usinas` |
+# MAGIC | 3 | `silver_geracao` + `dim_unidades_geradoras` + `enriquecimento_fabricantes` | **Aggregate** (média por unidade) + **Join** + **Compute** (`fator_capacidade`) | `silver_desempenho_unidades` |
+# MAGIC | 4 | `silver_geracao` + `silver_usinas` | **Aggregate** por usina + **Compute/Window** (ranking e `% participação`) | `gold_geracao_por_usina` |
 # MAGIC
-# MAGIC ### Data Quality (Expectations)
-# MAGIC No bloco da transformação 1, adicione regras de qualidade (no Designer é o painel
-# MAGIC **Data quality**):
-# MAGIC - `geracao_mwh >= 0`  → **drop** as linhas inválidas
-# MAGIC - `disponibilidade BETWEEN 0 AND 1` → **drop**
+# MAGIC > **Qualidade dos dados:** na experiência visual, use o operador **Filter** para
+# MAGIC > descartar linhas inválidas (a transformação 1 acima). No modo por código (`02c`), o
+# MAGIC > mesmo é feito com `@dlt.expect_or_drop`.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 4. Pré-visualizar os resultados
 # MAGIC
-# MAGIC ### Publicar
-# MAGIC Clique em **Publish** e depois **Run** — o Designer materializa Silver e Gold e
-# MAGIC mostra o **grafo de linhagem** (lineage) automaticamente.
+# MAGIC - Clique em qualquer operador para ver a **prévia dos dados** no painel inferior
+# MAGIC - Use o seletor **Rows scanned** para controlar o volume processado na prévia
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 5. Publicar cada saída (operador Output) e executar
+# MAGIC
+# MAGIC Para cada tabela de resultado (Silver e Gold):
+# MAGIC
+# MAGIC 1. Adicione um operador **Output** ligado ao último operador da transformação
+# MAGIC 2. Configure:
+# MAGIC    - **Table name**: ex. `silver_geracao`, `gold_geracao_por_usina`, ...
+# MAGIC    - **Output location**: catálogo `workshop_eneva` + schema `<seu_nome>`
+# MAGIC 3. Clique em **Run** — cada execução **cria ou substitui** a tabela gerenciada
+# MAGIC 4. (Opcional) Clique em **Schedule** para agendar execuções recorrentes
+# MAGIC
+# MAGIC > O Designer mostra o **grafo de linhagem** (lineage) entre as tabelas automaticamente.
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Prefere ver o código?
 # MAGIC
-# MAGIC Os notebooks abaixo contêm exatamente o pipeline que o Designer gera:
+# MAGIC Os notebooks abaixo contêm o mesmo pipeline em código declarativo (SDP):
 # MAGIC
 # MAGIC - **Exercício (TO-DOs):** `02b_transformacao_to_do.py`
 # MAGIC - **Referência (completo):** `02c_transformacao_completo.py`
 # MAGIC
-# MAGIC Você pode usar qualquer um dos dois como *source code* do pipeline, caso prefira a
-# MAGIC abordagem por código em vez do Designer visual.
+# MAGIC Você pode criar um **ETL pipeline** usando um desses notebooks como *source code*
+# MAGIC (Target catalog `workshop_eneva`, Target schema `<seu_nome>`), caso prefira a abordagem
+# MAGIC por código em vez do Designer visual.
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Verificação (após rodar o pipeline)
+# MAGIC ## Verificação (após executar)
 # MAGIC
-# MAGIC Execute a célula abaixo (fora do pipeline, em um cluster comum) para conferir as
-# MAGIC tabelas Silver e Gold geradas.
+# MAGIC Execute a célula abaixo (em um cluster comum) para conferir as tabelas Silver e Gold geradas.
 
 # COMMAND ----------
 

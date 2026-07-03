@@ -33,7 +33,7 @@ Workshop prático de Databricks personalizado para o time da **Eneva**, com foco
 | -- | -- | -- | -- |
 | 00 | **Setup** | Catálogo compartilhado `workshop_eneva` + schema pessoal (seu nome) | 15 min |
 | 01 | **Ingestão de Dados** | Upload manual de arquivos (CSV + Excel) via Catalog (Create table), camada Bronze | 30 min |
-| 02 | **Transformação — LakeFlow Designer** | Silver/Gold, 4 transformações low-code, Data Quality | 40 min |
+| 02 | **Transformação — LakeFlow Designer** | Visual data prep (no-code): Silver/Gold, 4 transformações | 40 min |
 | 03 | **Genie Space** | Consumo de dados em linguagem natural, instruções customizadas | 30 min |
 | 04 | **AI/BI Dashboards** | Visualizações interativas, KPIs, gráficos | 30 min |
 |    | **Encerramento** | Considerações finais e perguntas | 15 min |
@@ -234,25 +234,29 @@ Lab 1, baixe-os para o seu computador em ZIP:
 | 3 | **Fator de Capacidade** | Silver | Join com `enriquecimento_fabricantes` e cálculo de `fator_capacidade` vs referência do fabricante |
 | 4 | **Ranking com Janela** | Gold | Agregação por usina + `row_number()` (ranking) + `% de participação` na matriz |
 
-### Instruções
+### Instruções — LakeFlow Designer (visual, recomendado)
 
-1. **Leia o guia visual** `02a_guia_lakeflow_designer.py` — passo a passo no Designer
-2. **Complete os TO-DOs** no notebook `02b_transformacao_to_do.py` (ou monte visualmente no Designer)
-3. **Crie o pipeline (LakeFlow / SDP)**:
-   1. Vá em **Jobs & Pipelines** > **ETL pipeline**
-   2. **Pipeline name**: `pipeline_eneva_<seu_nome>`
-   3. **Source code**: selecione `02c_transformacao_completo.py` (ou `02b_transformacao_to_do.py`)
-   4. **Target catalog**: `workshop_eneva`
-   5. **Target schema**: `<seu_nome>` (o mesmo do Lab 1)
-   6. Em **Configuration**, adicione: Key `pipeline.nome_participante` → Value `<seu_nome>`
-   7. **Compute**: Serverless (recomendado)
-   8. Clique em **Create** e depois em **Start**
+1. Na **barra lateral esquerda**, clique em **+ (New)** > **Visual data prep**
+2. **Adicione as fontes**: para cada tabela do Lab 1, use o operador **Source** > **Browse** e
+   selecione a tabela em `workshop_eneva` > `<seu_nome>`
+3. **Monte as 4 transformações** arrastando operadores no canvas (**Compute/Derived columns**,
+   **Filter**, **Join**, **Aggregate**) — o passo a passo detalhado está em
+   `02a_guia_lakeflow_designer.py`
+4. **Publique cada saída** com o operador **Output** (Table name = `silver_*`/`gold_*`,
+   Output location = catálogo `workshop_eneva` + schema `<seu_nome>`)
+5. Clique em **Run** — cada execução cria/substitui as tabelas gerenciadas
+
+> **Alternativa por código (ETL pipeline / SDP):** se preferir código em vez do Designer,
+> vá em **Jobs & Pipelines** > **ETL pipeline**, use `02c_transformacao_completo.py`
+> (ou `02b_transformacao_to_do.py`) como *source code*, defina **Target catalog** `workshop_eneva`,
+> **Target schema** `<seu_nome>`, adicione em **Configuration** a key
+> `pipeline.nome_participante` = `<seu_nome>`, escolha **Serverless** e clique em **Create** > **Start**.
 
 ### Conceitos abordados
-- LakeFlow Designer (low-code / no-code)
-- Spark Declarative Pipelines (SDP)
+- LakeFlow Designer (Visual data prep — low-code / no-code)
+- Operadores: Source, Compute, Filter, Join, Aggregate, Output
 - Cast de tipos, `join`, funções de janela (`window`)
-- Data Quality Expectations
+- Qualidade de dados (Filter na experiência visual / Expectations no código)
 - Medallion Architecture (Silver / Gold)
 
 </br>

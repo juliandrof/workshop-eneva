@@ -365,7 +365,7 @@ def build_teoria_lakeflow(sid):
     gt = uid("gt"); reqs += [mk_shape(sid, gt, "TEXT_BOX", 0.6, 1.7, 5.4, 0.5),
                               mk_text(gt, "O que é"), mk_style(gt, bold=True, sz=20, color=GREEN)]
     gd = uid("gd"); reqs += [mk_shape(sid, gd, "TEXT_BOX", 0.6, 2.3, 5.4, 4.4),
-        mk_text(gd, "Experiência visual (no-code)\npara construir pipelines de\ntransformação.\n\n• Arraste blocos: Join,\n  Aggregate, Filter, Window\n• Gera SDP por baixo\n• Data Quality em cada etapa\n• Linhagem (lineage) automática\n\nAcessível a perfis de negócio,\nnão apenas engenheiros de dados."),
+        mk_text(gd, "Experiência visual (no-code)\npara preparar e transformar\ndados — o \"Visual data prep\".\n\nAcesse pela barra lateral:\n+ (New) > Visual data prep\n\n• Arraste operadores: Source,\n  Join, Aggregate, Filter,\n  Compute, Output\n• Gera pipeline por baixo\n• Linhagem (lineage) automática\n\nAcessível a perfis de negócio."),
         mk_style(gd, sz=12, color=DARK_GRAY), mk_para(gd, "START", 150)]
     # right: 4 transformations
     rt = uid("rt"); reqs += [mk_shape(sid, rt, "TEXT_BOX", 7.0, 1.5, 6.0, 0.45),
@@ -625,12 +625,12 @@ def main():
          "Execute 01b_validacao.py — as 5 tabelas Bronze devem estar populadas"),
     ]))
     batch_update(build_lab_handson("s_lab2", "2", "LakeFlow Designer", "40 min", [
-        ("Leia o guia visual",
-         "02a_guia_lakeflow_designer.py — passo a passo para montar o pipeline arrastando blocos"),
+        ("Abra o Visual data prep",
+         "Barra lateral esquerda → + (New) → Visual data prep. Adicione as tabelas do Lab 1 com o operador Source"),
         ("Monte as 4 transformações",
-         "Limpeza + Tempo → Enriquecer Usinas → Fator de Capacidade → Ranking com Window (ou complete 02b)"),
-        ("Crie e rode o pipeline",
-         "ETL pipeline → pipeline_eneva_<nome> → catalog workshop_eneva, schema <nome> → Serverless → Start"),
+         "Limpeza + Tempo → Enriquecer Usinas → Fator de Capacidade → Ranking com Window (guia em 02a)"),
+        ("Publique com Output e rode",
+         "Operador Output (workshop_eneva, schema <nome>) para cada silver_*/gold_* → Run"),
     ]))
     batch_update(build_lab_handson("s_lab3", "3", "Genie Space", "30 min", [
         ("Complete os TO-DOs",
