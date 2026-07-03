@@ -32,7 +32,7 @@ Workshop prático de Databricks personalizado para o time da **Eneva**, com foco
 | # | Lab | Tópicos | Duração |
 | -- | -- | -- | -- |
 | 00 | **Setup** | Catálogo compartilhado `workshop_eneva` + schema pessoal (seu nome) | 15 min |
-| 01 | **Ingestão de Dados** | Upload manual de CSV/XLSX via Catalog (Create table), camada Bronze | 30 min |
+| 01 | **Ingestão de Dados** | Upload manual de arquivos (CSV + Excel) via Catalog (Create table), camada Bronze | 30 min |
 | 02 | **Transformação — LakeFlow Designer** | Silver/Gold, 4 transformações low-code, Data Quality | 40 min |
 | 03 | **Genie Space** | Consumo de dados em linguagem natural, instruções customizadas | 30 min |
 | 04 | **AI/BI Dashboards** | Visualizações interativas, KPIs, gráficos | 30 min |
@@ -92,13 +92,13 @@ do Lab 2. Todas as tabelas são ingeridas na camada **Bronze** por upload manual
 ```
 workshop-eneva/
 │
-├── dados/                                # Dados prontos para upload manual (CSV + XLSX)
-│   ├── fato_geracao.csv / .xlsx          # FATO: leituras horárias de geração
-│   ├── dim_usinas.csv / .xlsx            # Dimensão: usinas
-│   ├── dim_unidades_geradoras.csv / .xlsx# Dimensão: unidades geradoras
-│   ├── enriquecimento_municipios.csv / .xlsx
-│   ├── enriquecimento_fabricantes.csv / .xlsx
-│   └── gerar_dados.py                    # Script que (re)gera os arquivos CSV/XLSX
+├── dados/                                # Dados prontos para upload manual
+│   ├── fato_geracao.csv                  # FATO: leituras horárias de geração (CSV)
+│   ├── dim_usinas.xlsx                    # Dimensão: usinas (Excel)
+│   ├── dim_unidades_geradoras.xlsx       # Dimensão: unidades geradoras (Excel)
+│   ├── enriquecimento_municipios.xlsx    # Enriquecimento: municípios (Excel)
+│   ├── enriquecimento_fabricantes.xlsx   # Enriquecimento: fabricantes (Excel)
+│   └── gerar_dados.py                    # Script que (re)gera os arquivos de dados
 │
 ├── 00_Setup/
 │   └── 00_configuracao_catalogo.py       # Catálogo workshop_eneva + schema pessoal (seu nome)
@@ -149,24 +149,25 @@ workshop-eneva/
 
 ### Passo 3: Baixar os dados do workshop
 
-Os dados já estão prontos na pasta [`dados/`](dados/) deste repositório, cada tabela em
-**CSV** e **XLSX**. Como você importou o repositório via **Git folder** (Passo 1), os arquivos
-já estão no seu Workspace. Para fazer o upload no Lab 1, baixe-os para o seu computador em ZIP:
+Os dados já estão prontos na pasta [`dados/`](dados/) deste repositório: a **tabela fato** em
+**CSV** e as **dimensões/enriquecimento** em **XLSX** (Excel). Como você importou o repositório
+via **Git folder** (Passo 1), os arquivos já estão no seu Workspace. Para fazer o upload no
+Lab 1, baixe-os para o seu computador em ZIP:
 
 1. No Databricks, abra **Workspace** e navegue até a sua **Git folder** `workshop-eneva`
 2. **Selecione a pasta `dados`**
 3. Clique nos **três pontos (⋮)** no lado direito
 4. Selecione **Download as** > **Zip - Source**
 5. Salve o `.zip` no seu computador e **descompacte** (duplo clique no Windows/macOS)
-6. Dentro da pasta descompactada estarão os 10 arquivos (5 tabelas × CSV + XLSX):
+6. Dentro da pasta descompactada estarão os 5 arquivos de dados:
 
-| Arquivo | Registros | Tipo | Descrição |
-| -- | -- | -- | -- |
-| `fato_geracao` | 5.832 | **Fato** | Leituras horárias de geração por unidade (72h × 81 unidades) |
-| `dim_usinas` | 15 | Dimensão | Usinas termelétricas (gás/carvão) e solares |
-| `dim_unidades_geradoras` | 81 | Dimensão | Motores, turbinas e inversores por usina |
-| `enriquecimento_municipios` | 9 | Enriquecimento | Região, submercado do SIN e população |
-| `enriquecimento_fabricantes` | 7 | Enriquecimento | País, eficiência e disponibilidade de referência |
+| Arquivo | Formato | Registros | Tipo | Descrição |
+| -- | -- | -- | -- | -- |
+| `fato_geracao.csv` | CSV | 5.832 | **Fato** | Leituras horárias de geração por unidade (72h × 81 unidades) |
+| `dim_usinas.xlsx` | XLSX | 15 | Dimensão | Usinas termelétricas (gás/carvão) e solares |
+| `dim_unidades_geradoras.xlsx` | XLSX | 81 | Dimensão | Motores, turbinas e inversores por usina |
+| `enriquecimento_municipios.xlsx` | XLSX | 9 | Enriquecimento | Região, submercado do SIN e população |
+| `enriquecimento_fabricantes.xlsx` | XLSX | 7 | Enriquecimento | País, eficiência e disponibilidade de referência |
 
 > **Alternativa:** na página do repositório no GitHub, clique em **Code** > **Download ZIP** e
 > descompacte — os arquivos ficam na subpasta `dados/`.
@@ -181,10 +182,10 @@ já estão no seu Workspace. Para fazer o upload no Lab 1, baixe-os para o seu c
 
 | Item | Detalhes |
 | -- | -- |
-| **Objetivo** | Ingerir os 5 arquivos (CSV/XLSX) na camada Bronze via **upload manual** |
+| **Objetivo** | Ingerir os 5 arquivos (fato em CSV, dimensões em Excel) na camada Bronze via **upload manual** |
 | **Guia de upload** | `01_Lab_Ingestao/01a_guia_upload_dados.py` |
 | **Notebook de validação** | `01_Lab_Ingestao/01b_validacao.py` |
-| **Dados** | pasta [`dados/`](dados/) — 5 tabelas em CSV e XLSX |
+| **Dados** | pasta [`dados/`](dados/) — 5 tabelas (1 CSV + 4 XLSX) |
 
 ### Instruções
 
@@ -192,16 +193,16 @@ já estão no seu Workspace. Para fazer o upload no Lab 1, baixe-os para o seu c
    1. No menu lateral, abra **Catalog** > `workshop_eneva` > schema **`<seu_nome>`**
    2. Clique em **Create** > **Create table** (Upload files)
    3. Arraste o arquivo (ex.: `fato_geracao.csv`), mantenha **First row = header**
-   4. **Table name** = nome do arquivo (ex.: `fato_geracao`) → **Create table**
+   4. **Table name** = nome do arquivo sem a extensão (ex.: `fato_geracao`) → **Create table**
    5. Repita para os 5 arquivos
 
 | Arquivo | Tabela resultante |
 | -- | -- |
-| `fato_geracao.csv` / `.xlsx` | `workshop_eneva.<nome>.fato_geracao` |
-| `dim_usinas.csv` / `.xlsx` | `workshop_eneva.<nome>.dim_usinas` |
-| `dim_unidades_geradoras.csv` / `.xlsx` | `workshop_eneva.<nome>.dim_unidades_geradoras` |
-| `enriquecimento_municipios.csv` / `.xlsx` | `workshop_eneva.<nome>.enriquecimento_municipios` |
-| `enriquecimento_fabricantes.csv` / `.xlsx` | `workshop_eneva.<nome>.enriquecimento_fabricantes` |
+| `fato_geracao.csv` | `workshop_eneva.<nome>.fato_geracao` |
+| `dim_usinas.xlsx` | `workshop_eneva.<nome>.dim_usinas` |
+| `dim_unidades_geradoras.xlsx` | `workshop_eneva.<nome>.dim_unidades_geradoras` |
+| `enriquecimento_municipios.xlsx` | `workshop_eneva.<nome>.enriquecimento_municipios` |
+| `enriquecimento_fabricantes.xlsx` | `workshop_eneva.<nome>.enriquecimento_fabricantes` |
 
 2. **Valide** a ingestão executando `01b_validacao.py` (confere as 5 tabelas)
 

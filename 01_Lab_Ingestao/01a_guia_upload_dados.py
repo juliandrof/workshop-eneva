@@ -16,16 +16,16 @@
 # MAGIC %md
 # MAGIC ## Arquivos que vamos ingerir
 # MAGIC
-# MAGIC A pasta `dados/` do repositório contém 5 tabelas, cada uma em **CSV** e **XLSX**
-# MAGIC (use o formato que preferir):
+# MAGIC A pasta `dados/` do repositório contém 5 tabelas — a **fato em CSV** e as
+# MAGIC **dimensões/enriquecimento em Excel (XLSX)**:
 # MAGIC
-# MAGIC | Arquivo | Tipo | Descrição |
-# MAGIC | -- | -- | -- |
-# MAGIC | `fato_geracao` | **Fato** | Leituras horárias de geração por unidade (MWh, combustível, disponibilidade) |
-# MAGIC | `dim_usinas` | Dimensão | Usinas termelétricas (gás/carvão) e solares |
-# MAGIC | `dim_unidades_geradoras` | Dimensão | Motores, turbinas e inversores por usina |
-# MAGIC | `enriquecimento_municipios` | Enriquecimento | Região, submercado do SIN e população |
-# MAGIC | `enriquecimento_fabricantes` | Enriquecimento | País, eficiência e disponibilidade de referência |
+# MAGIC | Arquivo | Formato | Tipo | Descrição |
+# MAGIC | -- | -- | -- | -- |
+# MAGIC | `fato_geracao.csv` | CSV | **Fato** | Leituras horárias de geração por unidade (MWh, combustível, disponibilidade) |
+# MAGIC | `dim_usinas.xlsx` | XLSX | Dimensão | Usinas termelétricas (gás/carvão) e solares |
+# MAGIC | `dim_unidades_geradoras.xlsx` | XLSX | Dimensão | Motores, turbinas e inversores por usina |
+# MAGIC | `enriquecimento_municipios.xlsx` | XLSX | Enriquecimento | Região, submercado do SIN e população |
+# MAGIC | `enriquecimento_fabricantes.xlsx` | XLSX | Enriquecimento | País, eficiência e disponibilidade de referência |
 
 # COMMAND ----------
 
@@ -41,13 +41,13 @@
 # MAGIC 5. Confira a prévia:
 # MAGIC    - **Catalog**: `workshop_eneva`
 # MAGIC    - **Schema**: `<seu_nome>`
-# MAGIC    - **Table name**: use exatamente o nome do arquivo (ex.: `fato_geracao`)
+# MAGIC    - **Table name**: use o nome do arquivo sem a extensão (ex.: `fato_geracao`)
 # MAGIC    - **First row contains header**: ativado
 # MAGIC    - Confira os tipos de coluna sugeridos (número vs texto)
 # MAGIC 6. Clique em **Create table**
 # MAGIC
-# MAGIC > **Dica:** você pode subir **CSV ou XLSX** — a UI de Create table aceita os dois.
-# MAGIC > Para o Excel, a primeira planilha (`Dados`) é usada automaticamente.
+# MAGIC > **Dica:** a UI de Create table aceita **CSV e XLSX**. Para os arquivos Excel
+# MAGIC > (`.xlsx`), a primeira planilha (`Dados`) é usada automaticamente.
 
 # COMMAND ----------
 
