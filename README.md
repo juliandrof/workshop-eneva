@@ -150,8 +150,14 @@ workshop-eneva/
 ### Passo 3: Baixar os dados do workshop
 
 Os dados já estão prontos na pasta [`dados/`](dados/) deste repositório, cada tabela em
-**CSV** e **XLSX**. Baixe os arquivos (ou clone o repo) — eles serão enviados manualmente
-no **Lab 1**.
+**CSV** e **XLSX**. Como você importou o repositório via **Git folder** (Passo 1), os arquivos
+já estão no seu Workspace. Para fazer o upload no Lab 1, baixe-os para o seu computador em ZIP:
+
+1. No Databricks, abra **Workspace** e navegue até a sua **Git folder** `workshop-eneva`
+2. Clique com o botão direito na pasta **`dados`** (ou no menu **⋮** ao lado dela)
+3. Selecione **Export** > **Source file** — o Databricks gera um **arquivo `.zip`** com o conteúdo da pasta
+4. Salve o `.zip` no seu computador e **descompacte** (duplo clique no Windows/macOS)
+5. Dentro da pasta descompactada estarão os 10 arquivos (5 tabelas × CSV + XLSX):
 
 | Arquivo | Registros | Tipo | Descrição |
 | -- | -- | -- | -- |
@@ -160,6 +166,9 @@ no **Lab 1**.
 | `dim_unidades_geradoras` | 81 | Dimensão | Motores, turbinas e inversores por usina |
 | `enriquecimento_municipios` | 9 | Enriquecimento | Região, submercado do SIN e população |
 | `enriquecimento_fabricantes` | 7 | Enriquecimento | País, eficiência e disponibilidade de referência |
+
+> **Alternativa:** na página do repositório no GitHub, clique em **Code** > **Download ZIP** e
+> descompacte — os arquivos ficam na subpasta `dados/`.
 
 > Para **regenerar** os arquivos, rode `python3 dados/gerar_dados.py`.
 
