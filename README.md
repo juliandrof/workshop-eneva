@@ -262,42 +262,143 @@ Para cada tabela que você ingeriu no Lab 1:
 #### 3. Montar as 4 transformações (operadores no canvas)
 
 As camadas são identificadas pelo **prefixo** do nome da tabela de saída (`silver_*`, `gold_*`),
-todas no seu schema `workshop_eneva.<seu_nome>`.
+todas no seu schema `workshop_eneva.<seu_nome>`. As colunas calculadas usam o componente
+**Prepare** — nele você adiciona/edita colunas com **expressões SQL** (copie as fórmulas abaixo).
 
 **Transformação 1 — `silver_geracao` (a partir de `fato_geracao`)**
-- **Compute / Derived columns**: faça o *cast* dos tipos — `data_hora` → timestamp;
-  `geracao_mwh`, `consumo_combustivel`, `disponibilidade`, `temperatura_c` → double
-- **Compute / Derived columns**: derive `ano`, `mes`, `dia`, `hora` de `data_hora` e crie o
-  `turno` (Madrugada / Manhã / Tarde / Noite) a partir da hora
-- **Filter** (qualidade de dados): mantenha apenas `geracao_mwh >= 0` **e**
-  `disponibilidade BETWEEN 0 AND 1`
+
+1. **Prepare** — faça o *cast* dos tipos, editando cada coluna com a expressão:
+
+   ```sql
+   CAST(data_hora AS TIMESTAMP)
+   ```
+   ```sql
+   CAST(geracao_mwh AS DOUBLE)
+   ```
+   ```sql
+   CAST(consumo_combustivel AS DOUBLE)
+   ```
+   ```sql
+   CAST(disponibilidade AS DOUBLE)
+   ```
+   ```sql
+   CAST(temperatura_c AS DOUBLE)
+   ```
+
+2. **Prepare** — adicione as colunas de tempo `ano`, `mes`, `dia`, `hora`:
+
+   ```sql
+   YEAR(data_hora)
+   ```
+   ```sql
+   MONTH(data_hora)
+   ```
+   ```sql
+   DAYOFMONTH(data_hora)
+   ```
+   ```sql
+   HOUR(data_hora)
+   ```
+
+3. **Prepare** — adicione a coluna `turno`:
+
+   ```sql
+   CASE
+     WHEN HOUR(data_hora) BETWEEN 6 AND 11 THEN 'Manhã'
+     WHEN HOUR(data_hora) BETWEEN 12 AND 17 THEN 'Tarde'
+     WHEN HOUR(data_hora) BETWEEN 18 AND 23 THEN 'Noite'
+     ELSE 'Madrugada'
+   END
+   ```
+
+4. **Filter** (qualidade de dados) — mantenha apenas as linhas válidas:
+
+   ```sql
+   geracao_mwh >= 0 AND disponibilidade BETWEEN 0 AND 1
+   ```
 
 **Transformação 2 — `silver_usinas` (a partir de `dim_usinas` + `enriquecimento_municipios`)**
-- **Join** por `municipio` + `uf` (tipo *left*) → traz `regiao`, `submercado_sin`, `populacao`
-- **Compute**: crie `idade_anos` = `2025 - ano_operacao`
+
+1. **Join** — junte `dim_usinas` com `enriquecimento_municipios` (tipo *left*), condição:
+
+   ```sql
+   dim_usinas.municipio = enriquecimento_municipios.municipio
+   AND dim_usinas.uf = enriquecimento_municipios.uf
+   ```
+
+2. **Prepare** — adicione a coluna `idade_anos`:
+
+   ```sql
+   2025 - ano_operacao
+   ```
 
 **Transformação 3 — `silver_desempenho_unidades`**
 (a partir de `silver_geracao` + `dim_unidades_geradoras` + `enriquecimento_fabricantes`)
-- **Aggregate** de `silver_geracao` por `id_unidade`, `id_usina`: média e soma de `geracao_mwh`,
-  média de `disponibilidade`, contagem de leituras
-- **Join** com `dim_unidades_geradoras` (por `id_unidade` + `id_usina`) e com
-  `enriquecimento_fabricantes` (por `fabricante`)
-- **Compute**: `fator_capacidade` = `geracao_media_mwh / potencia_nominal_mw` e
-  `gap_vs_referencia` = `fator_capacidade - fator_disponibilidade_ref`
+
+1. **Aggregate** de `silver_geracao`, agrupando por `id_unidade`, `id_usina`, com as medidas:
+
+   ```sql
+   AVG(geracao_mwh)   AS geracao_media_mwh
+   SUM(geracao_mwh)   AS geracao_total_mwh
+   AVG(disponibilidade) AS disponibilidade_media
+   COUNT(*)           AS num_leituras
+   ```
+
+2. **Join** — junte o resultado com `dim_unidades_geradoras` (por `id_unidade` + `id_usina`) e
+   depois com `enriquecimento_fabricantes` (por `fabricante`), ambos *left*.
+
+3. **Prepare** — adicione `fator_capacidade` e `gap_vs_referencia`:
+
+   ```sql
+   ROUND(geracao_media_mwh / potencia_nominal_mw, 4)
+   ```
+   ```sql
+   ROUND(fator_capacidade - fator_disponibilidade_ref, 4)
+   ```
 
 **Transformação 4 — `gold_geracao_por_usina` (a partir de `silver_geracao` + `silver_usinas`)**
-- **Aggregate** por `id_usina`: soma de `geracao_mwh`, média de `disponibilidade`, soma de
-  `consumo_combustivel`; **Join** com `silver_usinas` para trazer nome/fonte/uf/região
-- **Compute / Window**: `ranking` = `row_number()` ordenado por geração desc; `pct_participacao`
-  = geração da usina ÷ geração total × 100
 
-**Tabelas Gold adicionais** (mesmo padrão de Aggregate + Join, usadas nos Labs 3 e 4):
-- `gold_geracao_por_fonte` — agrega `silver_geracao` por `fonte` + `combustivel`
-- `gold_geracao_por_submercado` — agrega `silver_geracao` por `submercado_sin` + `regiao`
+1. **Aggregate** de `silver_geracao`, agrupando por `id_usina`, com as medidas:
 
-> **Qualidade dos dados:** na experiência visual, use o operador **Filter** para descartar
-> linhas inválidas (transformação 1). No modo por código (`02c`), o mesmo é feito com
-> `@dlt.expect_or_drop`.
+   ```sql
+   SUM(geracao_mwh)          AS geracao_total_mwh
+   AVG(disponibilidade)      AS disponibilidade_media
+   SUM(consumo_combustivel)  AS consumo_combustivel_total
+   ```
+
+2. **Join** com `silver_usinas` (por `id_usina`, *left*) para trazer `nome_usina`, `fonte`,
+   `combustivel`, `uf`, `regiao`, `submercado_sin`, `potencia_instalada_mw`.
+
+3. **Prepare** — adicione `ranking` e `pct_participacao` (funções de janela):
+
+   ```sql
+   ROW_NUMBER() OVER (ORDER BY geracao_total_mwh DESC)
+   ```
+   ```sql
+   ROUND(geracao_total_mwh / SUM(geracao_total_mwh) OVER () * 100, 2)
+   ```
+
+**Tabelas Gold adicionais** (usadas nos Labs 3 e 4) — apenas **Aggregate** + **Join**:
+
+- `gold_geracao_por_fonte` — **Aggregate** de `silver_geracao` (após Join com `silver_usinas`)
+  agrupando por `fonte`, `combustivel`:
+
+  ```sql
+  SUM(geracao_mwh)         AS geracao_total_mwh
+  AVG(geracao_mwh)         AS geracao_media_mwh
+  COUNT(DISTINCT id_usina) AS num_usinas
+  AVG(disponibilidade)     AS disponibilidade_media
+  ```
+
+- `gold_geracao_por_submercado` — **Aggregate** de `silver_geracao` (após Join com
+  `silver_usinas`) agrupando por `submercado_sin`, `regiao`:
+
+  ```sql
+  SUM(geracao_mwh)         AS geracao_total_mwh
+  COUNT(DISTINCT id_usina) AS num_usinas
+  COUNT(DISTINCT uf)       AS num_estados
+  AVG(disponibilidade)     AS disponibilidade_media
+  ```
 
 #### 4. Pré-visualizar os resultados
 
@@ -316,26 +417,12 @@ Para cada tabela de resultado (Silver e Gold):
 4. (Opcional) Clique em **Schedule** para agendar execuções recorrentes
 
 > O Designer mostra o **grafo de linhagem** (lineage) entre as tabelas automaticamente.
-> O notebook `02a_guia_lakeflow_designer.py` traz este mesmo passo a passo e uma célula de
-> verificação das tabelas geradas.
-
-### Alternativa por código (ETL pipeline / SDP)
-
-Se preferir código em vez do Designer visual:
-
-1. Vá em **Jobs & Pipelines** > **ETL pipeline**
-2. **Source code**: selecione `02c_transformacao_completo.py` (referência) ou
-   `02b_transformacao_to_do.py` (exercício com TO-DOs)
-3. **Target catalog**: `workshop_eneva` — **Target schema**: `<seu_nome>`
-4. Em **Configuration**, adicione a key `pipeline.nome_participante` = `<seu_nome>`
-5. **Compute**: Serverless (recomendado)
-6. Clique em **Create** e depois em **Start**
 
 ### Conceitos abordados
 - LakeFlow Designer (Visual data prep — low-code / no-code)
-- Operadores: Source, Compute, Filter, Join, Aggregate, Output
+- Operadores: Source, Prepare, Filter, Join, Aggregate, Output
 - Cast de tipos, `join`, funções de janela (`window`)
-- Qualidade de dados (Filter na experiência visual / Expectations no código)
+- Qualidade de dados com o operador Filter
 - Medallion Architecture (Silver / Gold)
 
 </br>
