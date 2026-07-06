@@ -108,9 +108,7 @@ workshop-eneva/
 │   └── 01b_validacao.py                  # Validação das tabelas Bronze ingeridas
 │
 ├── 02_Lab_Transformacao/
-│   ├── 02a_guia_lakeflow_designer.py     # Guia visual passo-a-passo do LakeFlow Designer
-│   ├── 02b_transformacao_to_do.py        # Pipeline com TO-DOs — 4 transformações (exercício)
-│   └── 02c_transformacao_completo.py     # Pipeline completo (referência)
+│   └── 02a_guia_lakeflow_designer.py     # Resumo de apoio (passo a passo completo no README)
 │
 ├── 03_Lab_Genie/
 │   ├── 03a_genie_to_do.py                # Preparação + instruções do Genie — TO-DOs (exercício)
@@ -221,9 +219,8 @@ Lab 1, baixe-os para o seu computador em ZIP:
 | Item | Detalhes |
 | -- | -- |
 | **Objetivo** | Construir as camadas Silver e Gold com **4 transformações** no LakeFlow Designer |
-| **Passo a passo** | Detalhado abaixo neste README (e também no notebook `02a_guia_lakeflow_designer.py`) |
-| **Notebook (exercício por código)** | `02_Lab_Transformacao/02b_transformacao_to_do.py` |
-| **Notebook (referência por código)** | `02_Lab_Transformacao/02c_transformacao_completo.py` |
+| **Passo a passo** | Detalhado abaixo neste README |
+| **Notebook de apoio** | `02_Lab_Transformacao/02a_guia_lakeflow_designer.py` (resumo + verificação) |
 
 ### As 4 transformações
 

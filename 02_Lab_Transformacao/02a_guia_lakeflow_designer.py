@@ -6,8 +6,10 @@
 # MAGIC
 # MAGIC O **LakeFlow Designer** é a experiência **visual e sem código** ("Visual data prep")
 # MAGIC para preparar e transformar dados no Databricks. Você monta o fluxo arrastando
-# MAGIC **operadores** em um canvas — o Designer gera, por baixo, um pipeline declarativo com
-# MAGIC o mesmo resultado do código dos notebooks `02b`/`02c`.
+# MAGIC **operadores** em um canvas, sem escrever código.
+# MAGIC
+# MAGIC > O passo a passo completo (com todas as fórmulas para copiar) está no **README** do
+# MAGIC > repositório, na seção **Lab 02**. Este notebook é um resumo de apoio.
 
 # COMMAND ----------
 
@@ -60,8 +62,7 @@
 # MAGIC | 4 | `silver_geracao` + `silver_usinas` | **Aggregate** por usina + **Compute/Window** (ranking e `% participação`) | `gold_geracao_por_usina` |
 # MAGIC
 # MAGIC > **Qualidade dos dados:** na experiência visual, use o operador **Filter** para
-# MAGIC > descartar linhas inválidas (a transformação 1 acima). No modo por código (`02c`), o
-# MAGIC > mesmo é feito com `@dlt.expect_or_drop`.
+# MAGIC > descartar linhas inválidas (a transformação 1 acima).
 
 # COMMAND ----------
 
@@ -86,20 +87,6 @@
 # MAGIC 4. (Opcional) Clique em **Schedule** para agendar execuções recorrentes
 # MAGIC
 # MAGIC > O Designer mostra o **grafo de linhagem** (lineage) entre as tabelas automaticamente.
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Prefere ver o código?
-# MAGIC
-# MAGIC Os notebooks abaixo contêm o mesmo pipeline em código declarativo (SDP):
-# MAGIC
-# MAGIC - **Exercício (TO-DOs):** `02b_transformacao_to_do.py`
-# MAGIC - **Referência (completo):** `02c_transformacao_completo.py`
-# MAGIC
-# MAGIC Você pode criar um **ETL pipeline** usando um desses notebooks como *source code*
-# MAGIC (Target catalog `workshop_eneva`, Target schema `<seu_nome>`), caso prefira a abordagem
-# MAGIC por código em vez do Designer visual.
 
 # COMMAND ----------
 
