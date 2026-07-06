@@ -221,9 +221,9 @@ Lab 1, baixe-os para o seu computador em ZIP:
 | Item | Detalhes |
 | -- | -- |
 | **Objetivo** | Construir as camadas Silver e Gold com **4 transformações** no LakeFlow Designer |
-| **Guia visual** | `02_Lab_Transformacao/02a_guia_lakeflow_designer.py` |
-| **Notebook (exercício)** | `02_Lab_Transformacao/02b_transformacao_to_do.py` |
-| **Notebook (referência)** | `02_Lab_Transformacao/02c_transformacao_completo.py` |
+| **Passo a passo** | Detalhado abaixo neste README (e também no notebook `02a_guia_lakeflow_designer.py`) |
+| **Notebook (exercício por código)** | `02_Lab_Transformacao/02b_transformacao_to_do.py` |
+| **Notebook (referência por código)** | `02_Lab_Transformacao/02c_transformacao_completo.py` |
 
 ### As 4 transformações
 
@@ -234,23 +234,102 @@ Lab 1, baixe-os para o seu computador em ZIP:
 | 3 | **Fator de Capacidade** | Silver | Join com `enriquecimento_fabricantes` e cálculo de `fator_capacidade` vs referência do fabricante |
 | 4 | **Ranking com Janela** | Gold | Agregação por usina + `row_number()` (ranking) + `% de participação` na matriz |
 
-### Instruções — LakeFlow Designer (visual, recomendado)
+### Passo a passo — LakeFlow Designer (visual, recomendado)
 
-1. Na **barra lateral esquerda**, clique em **+ (New)** > **Visual data prep**
-2. **Adicione as fontes**: para cada tabela do Lab 1, use o operador **Source** > **Browse** e
-   selecione a tabela em `workshop_eneva` > `<seu_nome>`
-3. **Monte as 4 transformações** arrastando operadores no canvas (**Compute/Derived columns**,
-   **Filter**, **Join**, **Aggregate**) — o passo a passo detalhado está em
-   `02a_guia_lakeflow_designer.py`
-4. **Publique cada saída** com o operador **Output** (Table name = `silver_*`/`gold_*`,
-   Output location = catálogo `workshop_eneva` + schema `<seu_nome>`)
-5. Clique em **Run** — cada execução cria/substitui as tabelas gerenciadas
+#### 1. Abrir o LakeFlow Designer (Visual data prep)
 
-> **Alternativa por código (ETL pipeline / SDP):** se preferir código em vez do Designer,
-> vá em **Jobs & Pipelines** > **ETL pipeline**, use `02c_transformacao_completo.py`
-> (ou `02b_transformacao_to_do.py`) como *source code*, defina **Target catalog** `workshop_eneva`,
-> **Target schema** `<seu_nome>`, adicione em **Configuration** a key
-> `pipeline.nome_participante` = `<seu_nome>`, escolha **Serverless** e clique em **Create** > **Start**.
+1. Na **barra lateral esquerda**, clique no ícone **+ (New)**
+2. Selecione **Visual data prep**
+3. Abre o **canvas** em branco com a tela de boas-vindas
+
+> O rascunho é salvo automaticamente. Renomeie no topo para `visual_prep_eneva_<seu_nome>`.
+
+#### 2. Adicionar as fontes de dados (operador Source)
+
+Para cada tabela que você ingeriu no Lab 1:
+
+1. Na tela de boas-vindas, clique em **Select source operator** (ou, no canvas, abra o menu de
+   operadores no painel à esquerda e escolha **Source**)
+2. Na aba de configuração, escolha **Browse** e selecione a tabela existente em
+   `workshop_eneva` > `<seu_nome>`
+3. Repita para as **5 tabelas** de entrada: `fato_geracao`, `dim_usinas`,
+   `dim_unidades_geradoras`, `enriquecimento_municipios`, `enriquecimento_fabricantes`
+
+> Para **conectar** operadores, arraste da bolinha de **saída** (borda direita) de um operador
+> até a bolinha de **entrada** (borda esquerda) do próximo. Para **configurar** um operador, dê
+> **duplo clique** nele (ou clique no ícone de **lápis**).
+
+#### 3. Montar as 4 transformações (operadores no canvas)
+
+As camadas são identificadas pelo **prefixo** do nome da tabela de saída (`silver_*`, `gold_*`),
+todas no seu schema `workshop_eneva.<seu_nome>`.
+
+**Transformação 1 — `silver_geracao` (a partir de `fato_geracao`)**
+- **Compute / Derived columns**: faça o *cast* dos tipos — `data_hora` → timestamp;
+  `geracao_mwh`, `consumo_combustivel`, `disponibilidade`, `temperatura_c` → double
+- **Compute / Derived columns**: derive `ano`, `mes`, `dia`, `hora` de `data_hora` e crie o
+  `turno` (Madrugada / Manhã / Tarde / Noite) a partir da hora
+- **Filter** (qualidade de dados): mantenha apenas `geracao_mwh >= 0` **e**
+  `disponibilidade BETWEEN 0 AND 1`
+
+**Transformação 2 — `silver_usinas` (a partir de `dim_usinas` + `enriquecimento_municipios`)**
+- **Join** por `municipio` + `uf` (tipo *left*) → traz `regiao`, `submercado_sin`, `populacao`
+- **Compute**: crie `idade_anos` = `2025 - ano_operacao`
+
+**Transformação 3 — `silver_desempenho_unidades`**
+(a partir de `silver_geracao` + `dim_unidades_geradoras` + `enriquecimento_fabricantes`)
+- **Aggregate** de `silver_geracao` por `id_unidade`, `id_usina`: média e soma de `geracao_mwh`,
+  média de `disponibilidade`, contagem de leituras
+- **Join** com `dim_unidades_geradoras` (por `id_unidade` + `id_usina`) e com
+  `enriquecimento_fabricantes` (por `fabricante`)
+- **Compute**: `fator_capacidade` = `geracao_media_mwh / potencia_nominal_mw` e
+  `gap_vs_referencia` = `fator_capacidade - fator_disponibilidade_ref`
+
+**Transformação 4 — `gold_geracao_por_usina` (a partir de `silver_geracao` + `silver_usinas`)**
+- **Aggregate** por `id_usina`: soma de `geracao_mwh`, média de `disponibilidade`, soma de
+  `consumo_combustivel`; **Join** com `silver_usinas` para trazer nome/fonte/uf/região
+- **Compute / Window**: `ranking` = `row_number()` ordenado por geração desc; `pct_participacao`
+  = geração da usina ÷ geração total × 100
+
+**Tabelas Gold adicionais** (mesmo padrão de Aggregate + Join, usadas nos Labs 3 e 4):
+- `gold_geracao_por_fonte` — agrega `silver_geracao` por `fonte` + `combustivel`
+- `gold_geracao_por_submercado` — agrega `silver_geracao` por `submercado_sin` + `regiao`
+
+> **Qualidade dos dados:** na experiência visual, use o operador **Filter** para descartar
+> linhas inválidas (transformação 1). No modo por código (`02c`), o mesmo é feito com
+> `@dlt.expect_or_drop`.
+
+#### 4. Pré-visualizar os resultados
+
+- Clique em qualquer operador para ver a **prévia dos dados** no painel inferior
+- Use o seletor **Rows scanned** para controlar o volume processado na prévia
+
+#### 5. Publicar cada saída (operador Output) e executar
+
+Para cada tabela de resultado (Silver e Gold):
+
+1. Adicione um operador **Output** ligado ao último operador da transformação
+2. Configure:
+   - **Table name**: ex. `silver_geracao`, `gold_geracao_por_usina`, …
+   - **Output location**: catálogo `workshop_eneva` + schema `<seu_nome>`
+3. Clique em **Run** — cada execução **cria ou substitui** a tabela gerenciada
+4. (Opcional) Clique em **Schedule** para agendar execuções recorrentes
+
+> O Designer mostra o **grafo de linhagem** (lineage) entre as tabelas automaticamente.
+> O notebook `02a_guia_lakeflow_designer.py` traz este mesmo passo a passo e uma célula de
+> verificação das tabelas geradas.
+
+### Alternativa por código (ETL pipeline / SDP)
+
+Se preferir código em vez do Designer visual:
+
+1. Vá em **Jobs & Pipelines** > **ETL pipeline**
+2. **Source code**: selecione `02c_transformacao_completo.py` (referência) ou
+   `02b_transformacao_to_do.py` (exercício com TO-DOs)
+3. **Target catalog**: `workshop_eneva` — **Target schema**: `<seu_nome>`
+4. Em **Configuration**, adicione a key `pipeline.nome_participante` = `<seu_nome>`
+5. **Compute**: Serverless (recomendado)
+6. Clique em **Create** e depois em **Start**
 
 ### Conceitos abordados
 - LakeFlow Designer (Visual data prep — low-code / no-code)
