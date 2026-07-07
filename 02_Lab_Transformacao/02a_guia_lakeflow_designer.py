@@ -47,22 +47,23 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 3. As 4 transformações (operadores no canvas)
+# MAGIC ## 3. Preparação + as 3 transformações (operadores no canvas)
 # MAGIC
 # MAGIC Abra o **menu de operadores** (painel à esquerda) e arraste cada operador para o canvas.
 # MAGIC Para configurar um operador, dê **duplo clique** nele (ou clique no ícone de **lápis**).
 # MAGIC As camadas são identificadas pelo **prefixo** do nome da tabela de saída
 # MAGIC (`silver_*`, `gold_*`), todas no seu schema `workshop_eneva.<seu_nome>`.
 # MAGIC
+# MAGIC > Os tipos das colunas já vêm corretos do upload (Lab 1) — **não é preciso fazer cast**.
+# MAGIC
 # MAGIC | # | A partir de | Operadores no Designer | Resultado (Output) |
 # MAGIC | -- | -- | -- | -- |
-# MAGIC | 1 | `fato_geracao` | **Compute/Derived columns** (cast de tipos + `ano/mês/dia/hora/turno`) + **Filter** (`geracao_mwh >= 0` e `disponibilidade BETWEEN 0 AND 1`) | `silver_geracao` |
-# MAGIC | 2 | `dim_usinas` + `enriquecimento_municipios` | **Join** por `municipio` + `uf` | `silver_usinas` |
-# MAGIC | 3 | `silver_geracao` + `dim_unidades_geradoras` + `enriquecimento_fabricantes` | **Aggregate** (média por unidade) + **Join** + **Compute** (`fator_capacidade`) | `silver_desempenho_unidades` |
-# MAGIC | 4 | `silver_geracao` + `silver_usinas` | **Aggregate** por usina + **Compute/Window** (ranking e `% participação`) | `gold_geracao_por_usina` |
+# MAGIC | Prep | `fato_geracao` | **Prepare** (`ano/mês/dia/hora/turno`) + **Filter** (`geracao_mwh >= 0` e `disponibilidade BETWEEN 0 AND 1`) | `silver_geracao` |
+# MAGIC | 1 | `dim_usinas` + `enriquecimento_municipios` | **Join** por `municipio` + `uf` | `silver_usinas` |
+# MAGIC | 2 | `silver_geracao` + `dim_unidades_geradoras` + `enriquecimento_fabricantes` | **Aggregate** (média por unidade) + **Join** + **Prepare** (`fator_capacidade`) | `silver_desempenho_unidades` |
+# MAGIC | 3 | `silver_geracao` + `silver_usinas` | **Aggregate** por usina + **Prepare/Window** (ranking e `% participação`) | `gold_geracao_por_usina` |
 # MAGIC
-# MAGIC > **Qualidade dos dados:** na experiência visual, use o operador **Filter** para
-# MAGIC > descartar linhas inválidas (a transformação 1 acima).
+# MAGIC > **Passo a passo completo, com as fórmulas para copiar, está no README (seção Lab 02).**
 
 # COMMAND ----------
 

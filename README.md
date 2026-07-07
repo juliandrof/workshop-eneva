@@ -33,7 +33,7 @@ Workshop prático de Databricks personalizado para o time da **Eneva**, com foco
 | -- | -- | -- | -- |
 | 00 | **Setup** | Catálogo compartilhado `workshop_eneva` + schema pessoal (seu nome) | 15 min |
 | 01 | **Ingestão de Dados** | Upload manual de arquivos (CSV + Excel) via Catalog (Create table), camada Bronze | 30 min |
-| 02 | **Transformação — LakeFlow Designer** | Visual data prep (no-code): Silver/Gold, 4 transformações | 40 min |
+| 02 | **Transformação — LakeFlow Designer** | Visual data prep (no-code): Silver/Gold, 3 transformações | 40 min |
 | 03 | **Genie Space** | Consumo de dados em linguagem natural, instruções customizadas | 30 min |
 | 04 | **AI/BI Dashboards** | Visualizações interativas, KPIs, gráficos | 30 min |
 |    | **Encerramento** | Considerações finais e perguntas | 15 min |
@@ -77,8 +77,7 @@ do Lab 2. Todas as tabelas são ingeridas na camada **Bronze** por upload manual
 | `CREATE CATALOG` | `workshop_eneva` (compartilhado — criado uma vez) | 00 |
 | `CREATE SCHEMA` | `workshop_eneva.<nome>` (schema pessoal) | 00 |
 | `USE CATALOG` / `USE SCHEMA` | Catálogo `workshop_eneva` e schema do participante | Todos |
-| `CREATE TABLE` / `SELECT` / `MODIFY` | Tabelas no schema do participante (upload no Lab 1) | Todos |
-| `CREATE PIPELINE` / `MANAGE` / `RUN` | Pipeline `pipeline_eneva_<nome>` | 02 |
+| `CREATE TABLE` / `SELECT` / `MODIFY` | Tabelas no schema do participante (upload no Lab 1, saídas do Lab 2) | Todos |
 | `CREATE GENIE` / `USE GENIE` | Genie Space com as tabelas Gold | 03 |
 | `CREATE DASHBOARD` | AI/BI Dashboard | 04 |
 | `USE CLUSTER` / `ATTACH` | Cluster ou Serverless | Todos |
@@ -218,18 +217,20 @@ Lab 1, baixe-os para o seu computador em ZIP:
 
 | Item | Detalhes |
 | -- | -- |
-| **Objetivo** | Construir as camadas Silver e Gold com **4 transformações** no LakeFlow Designer |
+| **Objetivo** | Construir as camadas Silver e Gold com **3 transformações** no LakeFlow Designer |
 | **Passo a passo** | Detalhado abaixo neste README |
 | **Notebook de apoio** | `02_Lab_Transformacao/02a_guia_lakeflow_designer.py` (resumo + verificação) |
 
-### As 4 transformações
+### As 3 transformações
 
 | # | Transformação | Camada | O que faz |
 | -- | -- | -- | -- |
-| 1 | **Limpeza + Tempo** | Silver | Cast de tipos, extração de ano/mês/dia/hora/**turno** e Data Quality (descarta leituras inválidas) |
-| 2 | **Enriquecimento de Usinas** | Silver | Join de `dim_usinas` com `enriquecimento_municipios` → região + submercado do SIN + população |
-| 3 | **Fator de Capacidade** | Silver | Join com `enriquecimento_fabricantes` e cálculo de `fator_capacidade` vs referência do fabricante |
-| 4 | **Ranking com Janela** | Gold | Agregação por usina + `row_number()` (ranking) + `% de participação` na matriz |
+| 1 | **Enriquecimento de Usinas** | Silver | Join de `dim_usinas` com `enriquecimento_municipios` → região + submercado do SIN + população |
+| 2 | **Fator de Capacidade** | Silver | Join com `enriquecimento_fabricantes` e cálculo de `fator_capacidade` vs referência do fabricante |
+| 3 | **Ranking com Janela** | Gold | Agregação por usina + `row_number()` (ranking) + `% de participação` na matriz |
+
+> Antes das transformações, há um passo simples de **preparação** (`silver_geracao`): derivar as
+> colunas de tempo (`ano/mês/dia/hora/turno`) e aplicar um **Filter** de qualidade.
 
 ### Passo a passo — LakeFlow Designer (visual, recomendado)
 
@@ -256,33 +257,15 @@ Para cada tabela que você ingeriu no Lab 1:
 > até a bolinha de **entrada** (borda esquerda) do próximo. Para **configurar** um operador, dê
 > **duplo clique** nele (ou clique no ícone de **lápis**).
 
-#### 3. Montar as 4 transformações (operadores no canvas)
+#### 3. Preparação — `silver_geracao` (derivar tempo + qualidade)
 
-As camadas são identificadas pelo **prefixo** do nome da tabela de saída (`silver_*`, `gold_*`),
-todas no seu schema `workshop_eneva.<seu_nome>`. As colunas calculadas usam o componente
-**Prepare** — nele você adiciona/edita colunas com **expressões SQL** (copie as fórmulas abaixo).
+**Source:** `fato_geracao`
 
-**Transformação 1 — `silver_geracao` (a partir de `fato_geracao`)**
+Os tipos das colunas já vêm corretos do upload (Lab 1), então **não é preciso fazer cast**.
+Aqui só derivamos as colunas de tempo e aplicamos o filtro de qualidade. As colunas calculadas
+usam o componente **Prepare** — nele você adiciona colunas com **expressões SQL** (copie abaixo).
 
-1. **Prepare** — faça o *cast* dos tipos, editando cada coluna com a expressão:
-
-   ```sql
-   CAST(data_hora AS TIMESTAMP)
-   ```
-   ```sql
-   CAST(geracao_mwh AS DOUBLE)
-   ```
-   ```sql
-   CAST(consumo_combustivel AS DOUBLE)
-   ```
-   ```sql
-   CAST(disponibilidade AS DOUBLE)
-   ```
-   ```sql
-   CAST(temperatura_c AS DOUBLE)
-   ```
-
-2. **Prepare** — adicione as colunas de tempo `ano`, `mes`, `dia`, `hora`:
+1. **Prepare** — adicione as colunas de tempo `ano`, `mes`, `dia`, `hora`:
 
    ```sql
    YEAR(data_hora)
@@ -297,7 +280,7 @@ todas no seu schema `workshop_eneva.<seu_nome>`. As colunas calculadas usam o co
    HOUR(data_hora)
    ```
 
-3. **Prepare** — adicione a coluna `turno`:
+2. **Prepare** — adicione a coluna `turno`:
 
    ```sql
    CASE
@@ -308,13 +291,22 @@ todas no seu schema `workshop_eneva.<seu_nome>`. As colunas calculadas usam o co
    END
    ```
 
-4. **Filter** (qualidade de dados) — mantenha apenas as linhas válidas:
+3. **Filter** (qualidade de dados) — mantenha apenas as linhas válidas:
 
    ```sql
    geracao_mwh >= 0 AND disponibilidade BETWEEN 0 AND 1
    ```
 
-**Transformação 2 — `silver_usinas` (a partir de `dim_usinas` + `enriquecimento_municipios`)**
+4. **Output** — publique como `silver_geracao` (será usada nas transformações seguintes)
+
+#### 4. Montar as 3 transformações (operadores no canvas)
+
+As camadas são identificadas pelo **prefixo** do nome da tabela de saída (`silver_*`, `gold_*`),
+todas no seu schema `workshop_eneva.<seu_nome>`.
+
+**Transformação 1 — `silver_usinas`**
+
+**Sources:** `dim_usinas` e `enriquecimento_municipios`
 
 1. **Join** — junte `dim_usinas` com `enriquecimento_municipios` (tipo *left*), condição:
 
@@ -329,8 +321,10 @@ todas no seu schema `workshop_eneva.<seu_nome>`. As colunas calculadas usam o co
    2025 - ano_operacao
    ```
 
-**Transformação 3 — `silver_desempenho_unidades`**
-(a partir de `silver_geracao` + `dim_unidades_geradoras` + `enriquecimento_fabricantes`)
+**Transformação 2 — `silver_desempenho_unidades`**
+
+**Sources:** `silver_geracao` (passo de preparação), `dim_unidades_geradoras` e
+`enriquecimento_fabricantes`
 
 1. **Aggregate** de `silver_geracao`, agrupando por `id_unidade`, `id_usina`, com as medidas:
 
@@ -353,7 +347,9 @@ todas no seu schema `workshop_eneva.<seu_nome>`. As colunas calculadas usam o co
    ROUND(fator_capacidade - fator_disponibilidade_ref, 4)
    ```
 
-**Transformação 4 — `gold_geracao_por_usina` (a partir de `silver_geracao` + `silver_usinas`)**
+**Transformação 3 — `gold_geracao_por_usina`**
+
+**Sources:** `silver_geracao` (preparação) e `silver_usinas` (Transformação 1)
 
 1. **Aggregate** de `silver_geracao`, agrupando por `id_usina`, com as medidas:
 
@@ -375,7 +371,8 @@ todas no seu schema `workshop_eneva.<seu_nome>`. As colunas calculadas usam o co
    ROUND(geracao_total_mwh / SUM(geracao_total_mwh) OVER () * 100, 2)
    ```
 
-**Tabelas Gold adicionais** (usadas nos Labs 3 e 4) — apenas **Aggregate** + **Join**:
+**Tabelas Gold adicionais** (usadas nos Labs 3 e 4) — apenas **Aggregate** + **Join**.
+**Sources:** `silver_geracao` (preparação) e `silver_usinas` (Transformação 1).
 
 - `gold_geracao_por_fonte` — **Aggregate** de `silver_geracao` (após Join com `silver_usinas`)
   agrupando por `fonte`, `combustivel`:
@@ -397,12 +394,12 @@ todas no seu schema `workshop_eneva.<seu_nome>`. As colunas calculadas usam o co
   AVG(disponibilidade)     AS disponibilidade_media
   ```
 
-#### 4. Pré-visualizar os resultados
+#### 5. Pré-visualizar os resultados
 
 - Clique em qualquer operador para ver a **prévia dos dados** no painel inferior
 - Use o seletor **Rows scanned** para controlar o volume processado na prévia
 
-#### 5. Publicar cada saída (operador Output) e executar
+#### 6. Publicar cada saída (operador Output) e executar
 
 Para cada tabela de resultado (Silver e Gold):
 
@@ -418,7 +415,7 @@ Para cada tabela de resultado (Silver e Gold):
 ### Conceitos abordados
 - LakeFlow Designer (Visual data prep — low-code / no-code)
 - Operadores: Source, Prepare, Filter, Join, Aggregate, Output
-- Cast de tipos, `join`, funções de janela (`window`)
+- Enriquecimento com `join` e funções de janela (`window`)
 - Qualidade de dados com o operador Filter
 - Medallion Architecture (Silver / Gold)
 

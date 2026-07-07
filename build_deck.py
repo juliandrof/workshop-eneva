@@ -367,13 +367,13 @@ def build_teoria_lakeflow(sid):
     gd = uid("gd"); reqs += [mk_shape(sid, gd, "TEXT_BOX", 0.6, 2.3, 5.4, 4.4),
         mk_text(gd, "Experiência visual (no-code)\npara preparar e transformar\ndados — o \"Visual data prep\".\n\nAcesse pela barra lateral:\n+ (New) > Visual data prep\n\n• Arraste operadores: Source,\n  Join, Aggregate, Filter,\n  Compute, Output\n• Gera pipeline por baixo\n• Linhagem (lineage) automática\n\nAcessível a perfis de negócio."),
         mk_style(gd, sz=12, color=DARK_GRAY), mk_para(gd, "START", 150)]
-    # right: 4 transformations
+    # right: prep + 3 transformations
     rt = uid("rt"); reqs += [mk_shape(sid, rt, "TEXT_BOX", 7.0, 1.5, 6.0, 0.45),
-                              mk_text(rt, "As 4 transformações do Lab"), mk_style(rt, bold=True, sz=18, color=GREEN)]
-    steps = [("1", "Limpeza + Tempo", "Cast de tipos + ano/mês/\ndia/turno + Data Quality", TEAL),
-             ("2", "Enriquecer Usinas", "Join com municípios →\nregião + submercado SIN", ORANGE),
-             ("3", "Fator de Capacidade", "Join com fabricantes →\ncálculo vs referência", RED),
-             ("4", "Ranking (Window)", "Agrega por usina →\nranking + % participação", YELLOW)]
+                              mk_text(rt, "Preparação + 3 transformações"), mk_style(rt, bold=True, sz=18, color=GREEN)]
+    steps = [("P", "Preparação", "ano/mês/dia/turno +\nFilter de qualidade", TEAL),
+             ("1", "Enriquecer Usinas", "Join com municípios →\nregião + submercado SIN", ORANGE),
+             ("2", "Fator de Capacidade", "Join com fabricantes →\ncálculo vs referência", RED),
+             ("3", "Ranking (Window)", "Agrega por usina →\nranking + % participação", YELLOW)]
     for i, (n, t, d, c) in enumerate(steps):
         y = 2.15 + i * 1.15
         nb = uid("nb"); reqs += [mk_shape(sid, nb, "ELLIPSE", 7.0, y, 0.5, 0.5), mk_fill(nb, c)]
@@ -455,7 +455,7 @@ def build_resumo(sid):
     lt = uid("lt"); reqs += [mk_shape(sid, lt, "TEXT_BOX", 0.5, 1.4, 6.0, 0.45),
                               mk_text(lt, "O que aprendemos"), mk_style(lt, bold=True, sz=18, color=GREEN)]
     labs = [("Lab 1 — Ingestão", "Upload manual (CSV/XLSX) → Bronze", TEAL),
-            ("Lab 2 — Transformação", "LakeFlow Designer: 4 transformações", ORANGE),
+            ("Lab 2 — Transformação", "LakeFlow Designer: 3 transformações", ORANGE),
             ("Lab 3 — Genie", "Consumo em linguagem natural", RED),
             ("Lab 4 — AI/BI", "Dashboards interativos", PURPLE)]
     for i, (n, d, c) in enumerate(labs):
@@ -627,8 +627,8 @@ def main():
     batch_update(build_lab_handson("s_lab2", "2", "LakeFlow Designer", "40 min", [
         ("Abra o Visual data prep",
          "Barra lateral esquerda → + (New) → Visual data prep. Adicione as tabelas do Lab 1 com o operador Source"),
-        ("Monte as 4 transformações",
-         "Limpeza + Tempo → Enriquecer Usinas → Fator de Capacidade → Ranking com Window (guia em 02a)"),
+        ("Prepare + 3 transformações",
+         "Preparação (tempo + Filter) → Enriquecer Usinas → Fator de Capacidade → Ranking com Window (guia no README)"),
         ("Publique com Output e rode",
          "Operador Output (workshop_eneva, schema <nome>) para cada silver_*/gold_* → Run"),
     ]))
