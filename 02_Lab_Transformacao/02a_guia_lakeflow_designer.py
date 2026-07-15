@@ -30,8 +30,7 @@
 # MAGIC
 # MAGIC Para cada tabela que você ingeriu no Lab 1:
 # MAGIC
-# MAGIC 1. Na tela de boas-vindas, clique em **Select source operator** (ou, no canvas, abra o
-# MAGIC    menu de operadores e escolha **Source**)
+# MAGIC 1. Clique em **Select a source** (ou, em **operadores**, no menu da esquerda, escolha **Source**)
 # MAGIC 2. Na aba de configuração, escolha **Browse** e selecione a tabela existente em
 # MAGIC    `workshop_eneva` > `<seu_nome>`
 # MAGIC 3. Repita para as 5 tabelas de entrada:

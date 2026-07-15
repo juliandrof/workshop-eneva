@@ -246,8 +246,7 @@ Lab 1, baixe-os para o seu computador em ZIP:
 
 Para cada tabela que você ingeriu no Lab 1:
 
-1. Na tela de boas-vindas, clique em **Select source operator** (ou, no canvas, abra o menu de
-   operadores no painel à esquerda e escolha **Source**)
+1. Clique em **Select a source** (ou, em **operadores**, no menu da esquerda, escolha **Source**)
 2. Na aba de configuração, escolha **Browse** e selecione a tabela existente em
    `workshop_eneva` > `<seu_nome>`
 3. Repita para as **5 tabelas** de entrada: `fato_geracao`, `dim_usinas`,
