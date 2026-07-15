@@ -365,7 +365,7 @@ def build_teoria_lakeflow(sid):
     gt = uid("gt"); reqs += [mk_shape(sid, gt, "TEXT_BOX", 0.6, 1.7, 5.4, 0.5),
                               mk_text(gt, "O que é"), mk_style(gt, bold=True, sz=20, color=GREEN)]
     gd = uid("gd"); reqs += [mk_shape(sid, gd, "TEXT_BOX", 0.6, 2.3, 5.4, 4.4),
-        mk_text(gd, "Experiência visual (no-code)\npara preparar e transformar\ndados — o \"Visual data prep\".\n\nAcesse pela barra lateral:\n+ (New) > Visual data prep\n\n• Arraste operadores: Source,\n  Join, Aggregate, Filter,\n  Compute, Output\n• Gera pipeline por baixo\n• Linhagem (lineage) automática\n\nAcessível a perfis de negócio."),
+        mk_text(gd, "Experiência visual (no-code)\npara preparar e transformar\ndados — o \"Visual data prep\".\n\nAcesse pela barra lateral:\n+ (New) > Visual data prep\n\n• Genie Code: descreva em\n  português e ele monta a\n  transformação para você\n• Sem escrever código\n• Linhagem (lineage) automática\n\nAcessível a perfis de negócio."),
         mk_style(gd, sz=12, color=DARK_GRAY), mk_para(gd, "START", 150)]
     # right: prep + 3 transformations
     rt = uid("rt"); reqs += [mk_shape(sid, rt, "TEXT_BOX", 7.0, 1.5, 6.0, 0.45),
@@ -627,8 +627,8 @@ def main():
     batch_update(build_lab_handson("s_lab2", "2", "LakeFlow Designer", "40 min", [
         ("Abra o Visual data prep",
          "Barra lateral esquerda → + (New) → Visual data prep. Adicione as tabelas do Lab 1 com o operador Source"),
-        ("Prepare + 3 transformações",
-         "Preparação (tempo + Filter) → Enriquecer Usinas → Fator de Capacidade → Ranking com Window (guia no README)"),
+        ("Use o Genie Code (prompts)",
+         "Descreva em português no Genie Code: Preparação → Enriquecer Usinas → Fator de Capacidade → Ranking (prompts no README)"),
         ("Publique com Output e rode",
          "Operador Output (workshop_eneva, schema <nome>) para cada silver_*/gold_* → Run"),
     ]))

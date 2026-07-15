@@ -256,151 +256,102 @@ Para cada tabela que você ingeriu no Lab 1:
 > até a bolinha de **entrada** (borda esquerda) do próximo. Para **configurar** um operador, dê
 > **duplo clique** nele (ou clique no ícone de **lápis**).
 
-#### 3. Preparação — `silver_geracao` (derivar tempo + qualidade)
+#### 3. Usar o Genie Code (assistente em linguagem natural)
 
-**Source:** `fato_geracao`
+O LakeFlow Designer tem o **Genie Code** — uma barra onde você **descreve em português** o que
+quer fazer e ele cria a transformação para você. É assim que vamos montar cada etapa, **sem
+escrever código**.
 
-Os tipos das colunas já vêm corretos do upload (Lab 1), então **não é preciso fazer cast**.
-Aqui só derivamos as colunas de tempo e aplicamos o filtro de qualidade. As colunas calculadas
-usam o componente **Prepare** — nele você adiciona colunas com **expressões SQL** (copie abaixo).
+Como usar, para cada etapa abaixo:
 
-1. **Prepare** — adicione as colunas de tempo `ano`, `mes`, `dia`, `hora`:
+1. No canvas do Visual data prep, abra a barra do **Genie Code**
+2. **Cole o prompt** da etapa (use o botão de copiar 📋 nas caixas abaixo)
+3. Use o botão **@** para **mencionar as tabelas** citadas no prompt (ex.: `@fato_geracao`) —
+   assim o Genie sabe exatamente de quais dados você fala
+4. Envie e revise a etapa gerada; se estiver de acordo, **aceite** para adicioná-la ao fluxo
+5. Confira a **prévia dos dados** no painel inferior
 
-   ```sql
-   YEAR(data_hora)
-   ```
-   ```sql
-   MONTH(data_hora)
-   ```
-   ```sql
-   DAYOFMONTH(data_hora)
-   ```
-   ```sql
-   HOUR(data_hora)
-   ```
+> Dica: se o resultado não sair como esperado, ajuste o texto do prompt e envie de novo — é uma
+> conversa. Você pode iniciar um novo tópico a qualquer momento.
 
-2. **Prepare** — adicione a coluna `turno`:
+#### 4. Preparação — `silver_geracao` (tempo + qualidade)
 
-   ```sql
-   CASE
-     WHEN HOUR(data_hora) BETWEEN 6 AND 11 THEN 'Manhã'
-     WHEN HOUR(data_hora) BETWEEN 12 AND 17 THEN 'Tarde'
-     WHEN HOUR(data_hora) BETWEEN 18 AND 23 THEN 'Noite'
-     ELSE 'Madrugada'
-   END
-   ```
+**Source:** `fato_geracao` — comece adicionando esta tabela com o operador **Source**.
 
-3. **Filter** (qualidade de dados) — mantenha apenas as linhas válidas:
+Prompt para o **Genie Code**:
 
-   ```sql
-   geracao_mwh >= 0 AND disponibilidade BETWEEN 0 AND 1
-   ```
+```text
+Usando a tabela @fato_geracao, crie uma nova tabela chamada silver_geracao com:
+- colunas de tempo derivadas de data_hora: ano, mês, dia e hora
+- uma coluna "turno" a partir da hora: 6 às 11 = "Manhã", 12 às 17 = "Tarde",
+  18 às 23 = "Noite" e o restante = "Madrugada"
+- mantenha apenas as linhas em que geracao_mwh é maior ou igual a zero e
+  disponibilidade está entre 0 e 1
+```
 
-4. **Output** — publique como `silver_geracao` (será usada nas transformações seguintes)
-
-#### 4. Montar as 3 transformações (operadores no canvas)
+#### 5. As 3 transformações
 
 As camadas são identificadas pelo **prefixo** do nome da tabela de saída (`silver_*`, `gold_*`),
-todas no seu schema `workshop_eneva.<seu_nome>`.
+todas no seu schema `workshop_eneva.<seu_nome>`. Descreva cada uma no **Genie Code**.
 
-**Transformação 1 — `silver_usinas`**
+**Transformação 1 — `silver_usinas`** · **Sources:** `dim_usinas` e `enriquecimento_municipios`
 
-**Sources:** `dim_usinas` e `enriquecimento_municipios`
-
-1. **Join** — junte `dim_usinas` com `enriquecimento_municipios` (tipo *left*), condição:
-
-   ```sql
-   dim_usinas.municipio = enriquecimento_municipios.municipio
-   AND dim_usinas.uf = enriquecimento_municipios.uf
-   ```
-
-2. **Prepare** — adicione a coluna `idade_anos`:
-
-   ```sql
-   2025 - ano_operacao
-   ```
+```text
+Junte @dim_usinas com @enriquecimento_municipios pelas colunas municipio e uf,
+trazendo regiao, submercado_sin e populacao. Adicione uma coluna idade_anos igual
+a 2025 menos ano_operacao. Salve o resultado como silver_usinas.
+```
 
 **Transformação 2 — `silver_desempenho_unidades`**
+· **Sources:** `silver_geracao`, `dim_unidades_geradoras` e `enriquecimento_fabricantes`
 
-**Sources:** `silver_geracao` (passo de preparação), `dim_unidades_geradoras` e
-`enriquecimento_fabricantes`
-
-1. **Aggregate** de `silver_geracao`, agrupando por `id_unidade`, `id_usina`, com as medidas:
-
-   ```sql
-   AVG(geracao_mwh)   AS geracao_media_mwh
-   SUM(geracao_mwh)   AS geracao_total_mwh
-   AVG(disponibilidade) AS disponibilidade_media
-   COUNT(*)           AS num_leituras
-   ```
-
-2. **Join** — junte o resultado com `dim_unidades_geradoras` (por `id_unidade` + `id_usina`) e
-   depois com `enriquecimento_fabricantes` (por `fabricante`), ambos *left*.
-
-3. **Prepare** — adicione `fator_capacidade` e `gap_vs_referencia`:
-
-   ```sql
-   ROUND(geracao_media_mwh / potencia_nominal_mw, 4)
-   ```
-   ```sql
-   ROUND(fator_capacidade - fator_disponibilidade_ref, 4)
-   ```
+```text
+A partir de @silver_geracao, calcule por unidade geradora (id_unidade, id_usina) a
+geração média (geracao_media_mwh), a geração total (geracao_total_mwh), a
+disponibilidade média e a quantidade de leituras. Junte com @dim_unidades_geradoras
+(por id_unidade e id_usina) e com @enriquecimento_fabricantes (por fabricante).
+Adicione o fator_capacidade = geracao_media_mwh dividido pela potencia_nominal_mw e
+o gap_vs_referencia = fator_capacidade menos fator_disponibilidade_ref, ambos
+arredondados com 4 casas. Salve como silver_desempenho_unidades.
+```
 
 **Transformação 3 — `gold_geracao_por_usina`**
+· **Sources:** `silver_geracao` e `silver_usinas`
 
-**Sources:** `silver_geracao` (preparação) e `silver_usinas` (Transformação 1)
+```text
+A partir de @silver_geracao, some a geração por usina (geracao_total_mwh), calcule a
+disponibilidade média e o consumo de combustível total. Junte com @silver_usinas
+para trazer nome_usina, fonte, combustivel, uf, regiao, submercado_sin e
+potencia_instalada_mw. Crie um ranking das usinas da maior para a menor geração e uma
+coluna pct_participacao com o percentual de cada usina no total gerado. Salve como
+gold_geracao_por_usina.
+```
 
-1. **Aggregate** de `silver_geracao`, agrupando por `id_usina`, com as medidas:
+**Tabelas Gold adicionais** (usadas nos Labs 3 e 4) · **Sources:** `silver_geracao` e `silver_usinas`
 
-   ```sql
-   SUM(geracao_mwh)          AS geracao_total_mwh
-   AVG(disponibilidade)      AS disponibilidade_media
-   SUM(consumo_combustivel)  AS consumo_combustivel_total
-   ```
+```text
+A partir de @silver_geracao (juntando com @silver_usinas para obter fonte e
+combustivel), agrupe por fonte e combustivel somando a geração total, a geração média,
+a quantidade de usinas distintas e a disponibilidade média. Salve como
+gold_geracao_por_fonte.
+```
 
-2. **Join** com `silver_usinas` (por `id_usina`, *left*) para trazer `nome_usina`, `fonte`,
-   `combustivel`, `uf`, `regiao`, `submercado_sin`, `potencia_instalada_mw`.
+```text
+A partir de @silver_geracao (juntando com @silver_usinas para obter submercado_sin e
+regiao), agrupe por submercado_sin e regiao somando a geração total, a quantidade de
+usinas distintas, a quantidade de estados distintos e a disponibilidade média. Salve
+como gold_geracao_por_submercado.
+```
 
-3. **Prepare** — adicione `ranking` e `pct_participacao` (funções de janela):
-
-   ```sql
-   ROW_NUMBER() OVER (ORDER BY geracao_total_mwh DESC)
-   ```
-   ```sql
-   ROUND(geracao_total_mwh / SUM(geracao_total_mwh) OVER () * 100, 2)
-   ```
-
-**Tabelas Gold adicionais** (usadas nos Labs 3 e 4) — apenas **Aggregate** + **Join**.
-**Sources:** `silver_geracao` (preparação) e `silver_usinas` (Transformação 1).
-
-- `gold_geracao_por_fonte` — **Aggregate** de `silver_geracao` (após Join com `silver_usinas`)
-  agrupando por `fonte`, `combustivel`:
-
-  ```sql
-  SUM(geracao_mwh)         AS geracao_total_mwh
-  AVG(geracao_mwh)         AS geracao_media_mwh
-  COUNT(DISTINCT id_usina) AS num_usinas
-  AVG(disponibilidade)     AS disponibilidade_media
-  ```
-
-- `gold_geracao_por_submercado` — **Aggregate** de `silver_geracao` (após Join com
-  `silver_usinas`) agrupando por `submercado_sin`, `regiao`:
-
-  ```sql
-  SUM(geracao_mwh)         AS geracao_total_mwh
-  COUNT(DISTINCT id_usina) AS num_usinas
-  COUNT(DISTINCT uf)       AS num_estados
-  AVG(disponibilidade)     AS disponibilidade_media
-  ```
-
-#### 5. Pré-visualizar os resultados
+#### 6. Pré-visualizar os resultados
 
 - Clique em qualquer operador para ver a **prévia dos dados** no painel inferior
 - Use o seletor **Rows scanned** para controlar o volume processado na prévia
 
-#### 6. Publicar cada saída (operador Output) e executar
+#### 7. Publicar cada saída (operador Output) e executar
 
-Para cada tabela de resultado (Silver e Gold):
+Cada prompt do Genie Code já gera a tabela de saída indicada. Confirme que cada resultado
+(Silver e Gold) tem um operador **Output** apontando para o seu schema:
 
 1. Adicione um operador **Output** ligado ao último operador da transformação
 2. Configure:
@@ -413,9 +364,9 @@ Para cada tabela de resultado (Silver e Gold):
 
 ### Conceitos abordados
 - LakeFlow Designer (Visual data prep — low-code / no-code)
-- Operadores: Source, Prepare, Filter, Join, Aggregate, Output
-- Enriquecimento com `join` e funções de janela (`window`)
-- Qualidade de dados com o operador Filter
+- **Genie Code**: construir transformações em linguagem natural (prompts)
+- Enriquecimento (join), agregações e ranking
+- Qualidade de dados (descarte de linhas inválidas)
 - Medallion Architecture (Silver / Gold)
 
 </br>

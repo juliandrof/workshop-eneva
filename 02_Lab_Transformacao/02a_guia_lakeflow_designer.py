@@ -5,10 +5,10 @@
 # MAGIC **Lab 2 — Guia visual do LakeFlow Designer (low-code)**
 # MAGIC
 # MAGIC O **LakeFlow Designer** é a experiência **visual e sem código** ("Visual data prep")
-# MAGIC para preparar e transformar dados no Databricks. Você monta o fluxo arrastando
-# MAGIC **operadores** em um canvas, sem escrever código.
+# MAGIC para preparar e transformar dados no Databricks. Neste lab usamos o **Genie Code** —
+# MAGIC uma barra onde você **descreve em português** o que quer e ele monta a transformação.
 # MAGIC
-# MAGIC > O passo a passo completo (com todas as fórmulas para copiar) está no **README** do
+# MAGIC > O passo a passo completo (com todos os **prompts para copiar**) está no **README** do
 # MAGIC > repositório, na seção **Lab 02**. Este notebook é um resumo de apoio.
 
 # COMMAND ----------
@@ -46,23 +46,20 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 3. Preparação + as 3 transformações (operadores no canvas)
+# MAGIC ## 3. Montar com o Genie Code (1 preparação + 3 transformações)
 # MAGIC
-# MAGIC Abra o **menu de operadores** (painel à esquerda) e arraste cada operador para o canvas.
-# MAGIC Para configurar um operador, dê **duplo clique** nele (ou clique no ícone de **lápis**).
-# MAGIC As camadas são identificadas pelo **prefixo** do nome da tabela de saída
-# MAGIC (`silver_*`, `gold_*`), todas no seu schema `workshop_eneva.<seu_nome>`.
+# MAGIC Abra a barra do **Genie Code** no canvas, cole o prompt de cada etapa (do README), use o
+# MAGIC botão **@** para mencionar as tabelas e aceite a etapa gerada. As camadas são identificadas
+# MAGIC pelo **prefixo** do nome da tabela (`silver_*`, `gold_*`), no seu schema `workshop_eneva.<seu_nome>`.
 # MAGIC
-# MAGIC > Os tipos das colunas já vêm corretos do upload (Lab 1) — **não é preciso fazer cast**.
-# MAGIC
-# MAGIC | # | A partir de | Operadores no Designer | Resultado (Output) |
+# MAGIC | # | A partir de | O que descrever ao Genie Code | Resultado |
 # MAGIC | -- | -- | -- | -- |
-# MAGIC | Prep | `fato_geracao` | **Prepare** (`ano/mês/dia/hora/turno`) + **Filter** (`geracao_mwh >= 0` e `disponibilidade BETWEEN 0 AND 1`) | `silver_geracao` |
-# MAGIC | 1 | `dim_usinas` + `enriquecimento_municipios` | **Join** por `municipio` + `uf` | `silver_usinas` |
-# MAGIC | 2 | `silver_geracao` + `dim_unidades_geradoras` + `enriquecimento_fabricantes` | **Aggregate** (média por unidade) + **Join** + **Prepare** (`fator_capacidade`) | `silver_desempenho_unidades` |
-# MAGIC | 3 | `silver_geracao` + `silver_usinas` | **Aggregate** por usina + **Prepare/Window** (ranking e `% participação`) | `gold_geracao_por_usina` |
+# MAGIC | Prep | `fato_geracao` | colunas de tempo (`ano/mês/dia/hora/turno`) + manter só linhas válidas | `silver_geracao` |
+# MAGIC | 1 | `dim_usinas` + `enriquecimento_municipios` | juntar por `municipio` + `uf`; `idade_anos` | `silver_usinas` |
+# MAGIC | 2 | `silver_geracao` + `dim_unidades_geradoras` + `enriquecimento_fabricantes` | média por unidade + juntar + `fator_capacidade` | `silver_desempenho_unidades` |
+# MAGIC | 3 | `silver_geracao` + `silver_usinas` | somar por usina + ranking e `% participação` | `gold_geracao_por_usina` |
 # MAGIC
-# MAGIC > **Passo a passo completo, com as fórmulas para copiar, está no README (seção Lab 02).**
+# MAGIC > **Os prompts completos, prontos para copiar, estão no README (seção Lab 02).**
 
 # COMMAND ----------
 
