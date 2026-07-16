@@ -459,7 +459,15 @@ Cada prompt do Genie Code já gera a tabela de saída indicada. Confirme que cad
 >
 > **Vamos avaliar todos os dashboards** e os **3 primeiros colocados ganharão um prêmio especial** 🎁.
 >
-> A imagem abaixo é apenas uma **referência/inspiração** — sinta-se à vontade para ir além dela.
+> A imagem mais abaixo é apenas uma **referência/inspiração** — sinta-se à vontade para ir além dela.
+
+### Como você será avaliado — os 3 pilares
+
+| Pilar | O que olhamos |
+| -- | -- |
+| 🎨 **Beleza** | Visual caprichado: título, cores, organização, harmonia e clareza do painel |
+| 🛠️ **Utilidade** | O dashboard ajuda a tomar decisões? Responde perguntas reais do negócio de forma prática? |
+| 🎯 **Relevância das informações** | As métricas escolhidas fazem sentido para geração de energia e contam uma história |
 
 ### Instruções
 
@@ -467,6 +475,36 @@ Cada prompt do Genie Code já gera a tabela de saída indicada. Confirme que cad
 2. **Crie o Dashboard**: **Dashboards** > **Create dashboard**
 3. **Crie os datasets** e monte os widgets que quiser — é livre! Use a referência como ponto de partida
 4. **Capriche no visual**: título, cores, organização e interatividade contam na avaliação
+
+### Use e abuse da IA (linguagem natural) para criar
+
+No AI/BI Dashboard você pode **descrever em português** o gráfico que quer e a IA cria para você —
+não precisa saber SQL nem configurar o gráfico na mão. Ao adicionar um widget/dataset, procure o
+campo de **"Ask the assistant" / criar com IA** e cole prompts como:
+
+```text
+Crie um gráfico de barras com as 10 usinas que mais geraram energia (geracao_total_mwh),
+com o nome da usina no eixo e uma cor por fonte.
+```
+```text
+Mostre um gráfico de pizza com a participação de cada fonte na geração total.
+```
+```text
+Crie cartões (counters) com a geração total em MWh, a disponibilidade média e o número de usinas ativas.
+```
+```text
+Compare a geração por turno (Manhã, Tarde, Noite, Madrugada) separando térmica e solar.
+```
+```text
+Faça um mapa ou gráfico da geração por submercado do SIN, do maior para o menor.
+```
+
+> **Dicas para brilhar na avaliação:**
+> - Peça à IA para **destacar insights** (ex.: "qual usina está abaixo da disponibilidade esperada?")
+> - Combine **KPIs no topo** + gráficos no meio + uma tabela de detalhe embaixo
+> - Adicione **filtros** (por fonte, por UF, por submercado) para deixar o painel interativo
+> - Dê um **título forte** e use as cores das fontes (gás, carvão, solar) de forma consistente
+> - Explore o **Genie** do Lab 3 para descobrir perguntas boas e depois transformá-las em gráficos
 
 ### Layout de referência (inspiração)
 
