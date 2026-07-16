@@ -147,7 +147,7 @@ gerador da Eneva.
 """
 
 print("=" * 70)
-print("INSTRUÇÕES PARA A GENIE SPACE (copie e cole no campo 'Instructions')")
+print("INSTRUÇÕES PARA A GENIE AGENT (copie e cole no campo 'Instructions')")
 print("=" * 70)
 print(instrucoes_genie)
 print("=" * 70)
