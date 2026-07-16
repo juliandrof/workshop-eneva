@@ -39,9 +39,6 @@
 # MAGIC    - `dim_unidades_geradoras`
 # MAGIC    - `enriquecimento_municipios`
 # MAGIC    - `enriquecimento_fabricantes`
-# MAGIC
-# MAGIC > Para **conectar** operadores, arraste da bolinha de **saída** (borda direita) de um
-# MAGIC > operador até a bolinha de **entrada** (borda esquerda) do próximo.
 
 # COMMAND ----------
 

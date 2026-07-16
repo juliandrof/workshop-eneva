@@ -252,10 +252,6 @@ Para cada tabela que você ingeriu no Lab 1:
 3. Repita para as **5 tabelas** de entrada: `fato_geracao`, `dim_usinas`,
    `dim_unidades_geradoras`, `enriquecimento_municipios`, `enriquecimento_fabricantes`
 
-> Para **conectar** operadores, arraste da bolinha de **saída** (borda direita) de um operador
-> até a bolinha de **entrada** (borda esquerda) do próximo. Para **configurar** um operador, dê
-> **duplo clique** nele (ou clique no ícone de **lápis**).
-
 #### 3. Usar o Genie Code (assistente em linguagem natural)
 
 O LakeFlow Designer tem o **Genie Code** — uma barra onde você **descreve em português** o que
