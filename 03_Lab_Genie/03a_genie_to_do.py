@@ -2,12 +2,12 @@
 # MAGIC %md
 # MAGIC <img src="https://raw.githubusercontent.com/juliandrof/workshop-eneva/main/images/header_lab3.png" width="100%"/>
 # MAGIC
-# MAGIC **Lab 3 — Criando e Curando uma Genie Space (exercício com TO-DOs)**
+# MAGIC **Lab 3 — Criando e Curando uma Genie Agent (exercício com TO-DOs)**
 # MAGIC
 # MAGIC O **Genie** permite que qualquer pessoa pergunte aos dados em **linguagem natural**
 # MAGIC (português!). Neste lab vamos:
 # MAGIC 1. Preparar **views** e **comentários** que ajudam o Genie a entender os dados
-# MAGIC 2. Criar uma **Genie Space** com as tabelas Gold
+# MAGIC 2. Criar uma **Genie Agent** com as tabelas Gold
 # MAGIC 3. Escrever **instruções customizadas** (o segredo de um bom Genie)
 # MAGIC 4. Testar com perguntas de negócio
 
@@ -108,7 +108,7 @@ spark.sql(f"""
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 3. Criar a Genie Space (na UI)
+# MAGIC ## 3. Criar a Genie Agent (na UI)
 # MAGIC
 # MAGIC 1. Vá em **Genie** (menu lateral) > **New**
 # MAGIC 2. **Título**: `Geração Eneva - <seu_nome>`
@@ -125,7 +125,7 @@ spark.sql(f"""
 # MAGIC ## 4. Instruções customizadas do Genie
 # MAGIC
 # MAGIC Este é o passo mais importante! Execute a célula abaixo e **copie o texto** para o
-# MAGIC campo **Instructions** da sua Genie Space.
+# MAGIC campo **Instructions** da sua Genie Agent.
 
 # COMMAND ----------
 
@@ -181,7 +181,7 @@ print("=" * 70)
 # MAGIC %md
 # MAGIC ## 5. Perguntas de exemplo (curadoria)
 # MAGIC
-# MAGIC Na Genie Space, cadastre algumas perguntas como **Sample Questions** para orientar
+# MAGIC Na Genie Agent, cadastre algumas perguntas como **Sample Questions** para orientar
 # MAGIC os usuários:
 # MAGIC
 # MAGIC 1. *"Qual usina gerou mais energia?"*

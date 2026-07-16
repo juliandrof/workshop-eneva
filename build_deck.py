@@ -240,7 +240,7 @@ def build_agenda(sid):
         ("—", "15 min", "Teoria — Data + AI Platform & Arquitetura Medallion"),
         ("01", "30 min", "Lab 1 — Ingestão de Dados (upload CSV/XLSX)"),
         ("02", "40 min", "Lab 2 — Transformação com LakeFlow Designer"),
-        ("03", "30 min", "Lab 3 — Genie Space (linguagem natural)"),
+        ("03", "30 min", "Lab 3 — Genie Agent (linguagem natural)"),
         ("04", "30 min", "Lab 4 — AI/BI Dashboards"),
         ("—", "15 min", "Resumo & Encerramento"),
     ]
@@ -609,7 +609,7 @@ def main():
     dividers = [
         ("s_sec1", "Lab 1 — Ingestão de Dados  (30 min)"),
         ("s_sec2", "Lab 2 — Transformação com LakeFlow Designer  (40 min)"),
-        ("s_sec3", "Lab 3 — Genie Space  (30 min)"),
+        ("s_sec3", "Lab 3 — Genie Agent  (30 min)"),
         ("s_sec4", "Lab 4 — AI/BI Dashboards  (30 min)"),
     ]
     for sid, title in dividers:
@@ -632,10 +632,10 @@ def main():
         ("Publique com Output e rode",
          "Operador Output (workshop_eneva, schema <nome>) para cada silver_*/gold_* → Run"),
     ]))
-    batch_update(build_lab_handson("s_lab3", "3", "Genie Space", "30 min", [
+    batch_update(build_lab_handson("s_lab3", "3", "Genie Agent", "30 min", [
         ("Complete os TO-DOs",
          "03a_genie_to_do.py — views, comentários em tabelas e colunas, instruções customizadas"),
-        ("Crie a Genie Space",
+        ("Crie a Genie Agent",
          "Genie > New > Geração Eneva - <nome> — adicione as tabelas Gold e views"),
         ("Cole as instruções e teste",
          "Contexto Eneva + glossário do setor elétrico. Pergunte: “Qual usina gerou mais energia?”"),

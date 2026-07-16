@@ -34,7 +34,7 @@ Workshop prático de Databricks personalizado para o time da **Eneva**, com foco
 | 00 | **Setup** | Catálogo compartilhado `workshop_eneva` + schema pessoal (seu nome) | 15 min |
 | 01 | **Ingestão de Dados** | Upload manual de arquivos (CSV + Excel) via Catalog (Create table), camada Bronze | 30 min |
 | 02 | **Transformação — LakeFlow Designer** | Visual data prep (no-code): Silver/Gold, 3 transformações | 40 min |
-| 03 | **Genie Space** | Consumo de dados em linguagem natural, instruções customizadas | 30 min |
+| 03 | **Genie Agent** | Consumo de dados em linguagem natural, instruções customizadas | 30 min |
 | 04 | **AI/BI Dashboards** | Visualizações interativas, KPIs, gráficos | 30 min |
 |    | **Encerramento** | Considerações finais e perguntas | 15 min |
 
@@ -78,7 +78,7 @@ do Lab 2. Todas as tabelas são ingeridas na camada **Bronze** por upload manual
 | `CREATE SCHEMA` | `workshop_eneva.<nome>` (schema pessoal) | 00 |
 | `USE CATALOG` / `USE SCHEMA` | Catálogo `workshop_eneva` e schema do participante | Todos |
 | `CREATE TABLE` / `SELECT` / `MODIFY` | Tabelas no schema do participante (upload no Lab 1, saídas do Lab 2) | Todos |
-| `CREATE GENIE` / `USE GENIE` | Genie Space com as tabelas Gold | 03 |
+| `CREATE GENIE` / `USE GENIE` | Genie Agent com as tabelas Gold | 03 |
 | `CREATE DASHBOARD` | AI/BI Dashboard | 04 |
 | `USE CLUSTER` / `ATTACH` | Cluster ou Serverless | Todos |
 
@@ -369,11 +369,11 @@ Cada prompt do Genie Code já gera a tabela de saída indicada. Confirme que cad
 
 ---
 
-## Lab 03 — Genie Space
+## Lab 03 — Genie Agent
 
 | Item | Detalhes |
 | -- | -- |
-| **Objetivo** | Criar e curar uma Genie Space para consultar a geração em linguagem natural |
+| **Objetivo** | Criar e curar uma Genie Agent para consultar a geração em linguagem natural |
 | **Notebook (exercício)** | `03_Lab_Genie/03a_genie_to_do.py` |
 | **Notebook (referência)** | `03_Lab_Genie/03b_genie_completo.py` |
 
@@ -388,7 +388,7 @@ Cada prompt do Genie Code já gera a tabela de saída indicada. Confirme que cad
 | 3 | Adicionar **comentários** em colunas-chave |
 | 4 | Revisar as **instruções customizadas** do Genie |
 
-2. **Crie a Genie Space**: **Genie** > **New** > adicione as tabelas Gold e views
+2. **Crie a Genie Agent**: **Genie** > **New** > adicione as tabelas Gold e views
 3. **Cole as instruções customizadas** (contexto Eneva + glossário do setor elétrico)
 4. **Teste o Genie** com perguntas como:
    - *"Qual usina gerou mais energia no período?"*

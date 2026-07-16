@@ -72,7 +72,7 @@ HEADERS = {
                               "Upload manual de CSV/XLSX &#183; Camada Bronze"),
     "header_lab2": lab_header("LAB 02", "Transforma&#231;&#227;o &#8212; LakeFlow Designer",
                               "Silver &amp; Gold &#183; 4 transforma&#231;&#245;es low-code"),
-    "header_lab3": lab_header("LAB 03", "Genie Space",
+    "header_lab3": lab_header("LAB 03", "Genie Agent",
                               "Consumindo dados em linguagem natural"),
     "header_lab4": lab_header("LAB 04", "AI/BI Dashboards",
                               "Visualiza&#231;&#245;es interativas da gera&#231;&#227;o"),

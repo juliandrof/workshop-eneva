@@ -135,5 +135,5 @@ for titulo, sql in queries.items():
 # MAGIC
 # MAGIC - **Lab 1** — Ingestão: upload manual de CSV/XLSX → camada Bronze
 # MAGIC - **Lab 2** — Transformação: LakeFlow Designer (Silver/Gold, 4 transformações)
-# MAGIC - **Lab 3** — Genie Space: análise em linguagem natural
+# MAGIC - **Lab 3** — Genie Agent: análise em linguagem natural
 # MAGIC - **Lab 4** — AI/BI Dashboard: visualizações interativas

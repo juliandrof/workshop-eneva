@@ -2,7 +2,7 @@
 # MAGIC %md
 # MAGIC <img src="https://raw.githubusercontent.com/juliandrof/workshop-eneva/main/images/header_lab3.png" width="100%"/>
 # MAGIC
-# MAGIC **Lab 3 — Criando e Curando uma Genie Space (versão completa / referência)**
+# MAGIC **Lab 3 — Criando e Curando uma Genie Agent (versão completa / referência)**
 
 # COMMAND ----------
 
@@ -95,7 +95,7 @@ print("Comentários de coluna adicionados!")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 4. Criar a Genie Space (na UI)
+# MAGIC ## 4. Criar a Genie Agent (na UI)
 # MAGIC
 # MAGIC 1. Vá em **Genie** > **New**
 # MAGIC 2. **Título**: `Geração Eneva - <seu_nome>`
@@ -157,7 +157,7 @@ print("=" * 70)
 # MAGIC %md
 # MAGIC ## 6. Testar o Genie
 # MAGIC
-# MAGIC Após criar a Genie Space, teste com perguntas como:
+# MAGIC Após criar a Genie Agent, teste com perguntas como:
 # MAGIC
 # MAGIC 1. **"Qual usina gerou mais energia no período?"**
 # MAGIC 2. **"Qual a participação de cada fonte na matriz de geração?"**

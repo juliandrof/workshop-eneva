@@ -93,7 +93,7 @@ LAYERS = [
 
 STACKED_DEFS = [
     ("GENIE", "#E0F7FA", "#00838F", [
-        ("Genie Space", [
+        ("Genie Agent", [
             ("Linguagem natural", ""), ("Tabelas Gold + views", ""),
             ("Instruções customizadas", ""),
         ]),
