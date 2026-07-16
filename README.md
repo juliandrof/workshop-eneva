@@ -13,7 +13,7 @@ Workshop prático de Databricks personalizado para o time da **Eneva**, com foco
     <td align="center" width="50%">
       <img src="https://raw.githubusercontent.com/juliandrof/workshop-eneva/main/images/juliandro_circle.png" width="150"/><br>
       <strong>Juliandro Figueiró</strong><br>
-      <em>Solutions Architect</em><br>
+      <em>Sr. Solutions Architect</em><br>
       <em>Databricks</em>
     </td>
     <td align="center" width="50%">
