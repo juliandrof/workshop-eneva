@@ -295,7 +295,7 @@ todas no seu schema `workshop_eneva.<seu_nome>`. Descreva cada uma no **Genie Co
 ```text
 Junte @dim_usinas com @enriquecimento_municipios pelas colunas municipio e uf,
 trazendo regiao, submercado_sin e populacao. Adicione uma coluna idade_anos igual
-a 2025 menos ano_operacao. Salve o resultado como silver_usinas.
+ao ano atual menos ano_operacao. Salve o resultado como silver_usinas.
 ```
 
 **Transformação 2 — `silver_desempenho_unidades`**
