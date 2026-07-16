@@ -449,21 +449,32 @@ Cada prompt do Genie Code já gera a tabela de saída indicada. Confirme que cad
 | Item | Detalhes |
 | -- | -- |
 | **Objetivo** | Criar um AI/BI Dashboard interativo sobre a geração do parque Eneva |
+| **Formato** | **Dashboard livre** — solte a criatividade! |
 | **Notebook (exercício)** | `04_Lab_AIBI/04a_dashboard_to_do.py` |
 | **Notebook (referência)** | `04_Lab_AIBI/04b_dashboard_completo.py` |
 
+> ## 🏆 Este lab é uma competição!
+> O Lab 4 é um **dashboard livre**: você tem total liberdade para escolher quais métricas
+> mostrar, os tipos de gráfico e o visual do painel. Use as tabelas Gold como base e capriche!
+>
+> **Vamos avaliar todos os dashboards** e os **3 primeiros colocados ganharão um prêmio especial** 🎁.
+>
+> A imagem abaixo é apenas uma **referência/inspiração** — sinta-se à vontade para ir além dela.
+
 ### Instruções
 
-1. **Complete os TO-DOs** no notebook `04a_dashboard_to_do.py` (queries de submercado e turno)
+1. **Prepare os dados** no notebook `04a_dashboard_to_do.py` (queries de submercado e turno)
 2. **Crie o Dashboard**: **Dashboards** > **Create dashboard**
-3. **Crie um dataset** para cada query e monte os widgets seguindo o layout de referência
-4. **Explore** os filtros e a interatividade
+3. **Crie os datasets** e monte os widgets que quiser — é livre! Use a referência como ponto de partida
+4. **Capriche no visual**: título, cores, organização e interatividade contam na avaliação
 
-### Layout de referência
+### Layout de referência (inspiração)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/juliandrof/workshop-eneva/main/images/dashboard_layout.png" alt="Layout do Dashboard — Workshop Eneva" width="100%">
 </p>
+
+Ideias de visualizações que você pode usar (ou criar as suas):
 
 | Dataset | Tipo de Visualização |
 | -- | -- |
