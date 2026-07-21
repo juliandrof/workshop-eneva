@@ -491,6 +491,26 @@ Ideias de visualizações que você pode usar (ou criar as suas):
 | Geração por Turno | Bar Chart (agrupado por fonte) |
 | Disponibilidade por Usina | Table |
 
+### 🤖 Quem vai avaliar? O Genie Code!
+
+A avaliação dos dashboards será feita pelo **Genie Code** — a própria IA do Databricks vai
+analisar os painéis e dar as notas nos 3 pilares. Use o prompt abaixo para pedir a avaliação:
+
+```text
+Analise os dashboards criados hoje e avalie cada um com notas de 0 a 10 nos seguintes pilares:
+
+Beleza: organização, cores, clareza, legibilidade e aparência geral.
+Utilidade: capacidade de apoiar decisões e responder perguntas relevantes do negócio.
+Relevância: qualidade das métricas, coerência dos indicadores e capacidade de contar uma história.
+
+Apresente os resultados em uma tabela com as colunas:
+
+| Dashboard | Beleza | Utilidade | Relevância | Média | Comentários |
+
+Ao final, apresente o Top 3 dashboards, classificados pela maior média, com uma breve
+justificativa para cada posição. Justifique objetivamente todas as notas atribuídas.
+```
+
 ### Conceitos abordados
 - AI/BI Dashboards
 - Datasets (queries SQL)
