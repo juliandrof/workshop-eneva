@@ -416,16 +416,6 @@ Cada prompt do Genie Code já gera a tabela de saída indicada. Confirme que cad
    - "Participação na matriz" = coluna pct_participacao de gold_geracao_por_usina.
    - Usinas solares só geram durante o dia — geração noturna zero é esperada, não é erro.
    - Ao comparar térmica vs solar, deixe claro que são perfis de geração diferentes.
-
-   ## Exemplos de Perguntas
-   - "Qual usina gerou mais energia no período?"
-   - "Qual a participação de cada fonte na matriz de geração?"
-   - "Compare a geração de Gás Natural com a de Carvão Mineral."
-   - "Qual submercado do SIN concentra mais geração?"
-   - "Qual a disponibilidade média das usinas termelétricas?"
-   - "Quanto gás natural foi consumido no total?"
-   - "Quais usinas têm fator de capacidade abaixo da referência do fabricante?"
-   - "Como varia a geração solar ao longo dos turnos do dia?"
    ```
 
 4. **Teste o Genie** com perguntas como:
