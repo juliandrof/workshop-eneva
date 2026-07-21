@@ -33,16 +33,16 @@ print(f"Usando: {catalog_name}.{schema_name}")
 
 # TO-DO 1: Confira o KPI de resumo geral
 # ────────────────────────────────────────
-# Dica: complete a query somando a geração total (SUM(geracao_mwh)),
+# Dica: complete a query somando a geração total (SUM(geracao_total_mwh)),
 #       contando usinas distintas e a disponibilidade média,
-#       a partir de gold.vw_geracao_detalhada.
+#       a partir de gold_geracao_por_usina.
 display(spark.sql(f"""
     SELECT
-        -- ROUND(SUM(geracao_mwh), 2) AS geracao_total_mwh,   <- complete
-        -- COUNT(DISTINCT nome_usina) AS usinas_ativas,        <- complete
-        -- ROUND(AVG(disponibilidade), 4) AS disponibilidade_media  <- complete
-        COUNT(*) AS total_leituras
-    FROM {catalog_name}.{schema_name}.vw_geracao_detalhada
+        -- ROUND(SUM(geracao_total_mwh), 2) AS geracao_total_mwh,   <- complete
+        -- COUNT(DISTINCT nome_usina) AS usinas_ativas,             <- complete
+        -- ROUND(AVG(disponibilidade_media), 4) AS disponibilidade_media  <- complete
+        COUNT(*) AS total_usinas
+    FROM {catalog_name}.{schema_name}.gold_geracao_por_usina
 """))
 
 # COMMAND ----------
@@ -68,11 +68,11 @@ display(spark.sql(f"""
 queries = {
     "KPI - Resumo Geral": f"""
 SELECT
-    ROUND(SUM(geracao_mwh), 2) AS geracao_total_mwh,
+    ROUND(SUM(geracao_total_mwh), 2) AS geracao_total_mwh,
     COUNT(DISTINCT nome_usina) AS usinas_ativas,
-    ROUND(AVG(disponibilidade), 4) AS disponibilidade_media,
-    ROUND(SUM(consumo_combustivel), 2) AS combustivel_total
-FROM {catalog_name}.{schema_name}.vw_geracao_detalhada
+    ROUND(AVG(disponibilidade_media), 4) AS disponibilidade_media,
+    ROUND(SUM(consumo_combustivel_total), 2) AS combustivel_total
+FROM {catalog_name}.{schema_name}.gold_geracao_por_usina
 """,
 
     "Geração por Fonte": f"""
@@ -101,7 +101,8 @@ ORDER BY ranking
 
     # TO-DO 3: Query de perfil de geração por turno
     # ───────────────────────────────────────────────
-    # Dica: agrupe vw_geracao_detalhada por turno e fonte, some geracao_mwh.
+    # Dica: junte silver_geracao (tem turno) com dim_usinas (tem fonte) por id_usina,
+    #       agrupe por turno e fonte e some geracao_mwh.
     #       Isso mostra o perfil solar (dia) vs térmica (constante).
     "Geração por Turno": f"""
 -- complete a query aqui

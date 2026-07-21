@@ -27,11 +27,11 @@ print(f"Usando: {catalog_name}.{schema_name}")
 
 display(spark.sql(f"""
     SELECT
-        ROUND(SUM(geracao_mwh), 2) AS geracao_total_mwh,
+        ROUND(SUM(geracao_total_mwh), 2) AS geracao_total_mwh,
         COUNT(DISTINCT nome_usina) AS usinas_ativas,
-        ROUND(AVG(disponibilidade), 4) AS disponibilidade_media,
-        ROUND(SUM(consumo_combustivel), 2) AS combustivel_total
-    FROM {catalog_name}.{schema_name}.vw_geracao_detalhada
+        ROUND(AVG(disponibilidade_media), 4) AS disponibilidade_media,
+        ROUND(SUM(consumo_combustivel_total), 2) AS combustivel_total
+    FROM {catalog_name}.{schema_name}.gold_geracao_por_usina
 """))
 
 # COMMAND ----------
@@ -53,11 +53,11 @@ display(spark.sql(f"""
 queries = {
     "KPI - Resumo Geral": f"""
 SELECT
-    ROUND(SUM(geracao_mwh), 2) AS geracao_total_mwh,
+    ROUND(SUM(geracao_total_mwh), 2) AS geracao_total_mwh,
     COUNT(DISTINCT nome_usina) AS usinas_ativas,
-    ROUND(AVG(disponibilidade), 4) AS disponibilidade_media,
-    ROUND(SUM(consumo_combustivel), 2) AS combustivel_total
-FROM {catalog_name}.{schema_name}.vw_geracao_detalhada
+    ROUND(AVG(disponibilidade_media), 4) AS disponibilidade_media,
+    ROUND(SUM(consumo_combustivel_total), 2) AS combustivel_total
+FROM {catalog_name}.{schema_name}.gold_geracao_por_usina
 """,
 
     "Geração por Fonte": f"""
@@ -85,14 +85,15 @@ ORDER BY geracao_total_mwh DESC
 """,
 
     "Geração por Turno": f"""
-SELECT turno, fonte,
-       ROUND(SUM(geracao_mwh), 2) AS geracao_mwh
-FROM {catalog_name}.{schema_name}.vw_geracao_detalhada
-GROUP BY turno, fonte
+SELECT g.turno, u.fonte,
+       ROUND(SUM(g.geracao_mwh), 2) AS geracao_mwh
+FROM {catalog_name}.{schema_name}.silver_geracao g
+LEFT JOIN {catalog_name}.{schema_name}.dim_usinas u ON g.id_usina = u.id_usina
+GROUP BY g.turno, u.fonte
 ORDER BY
-    CASE turno WHEN 'Madrugada' THEN 1 WHEN 'Manhã' THEN 2
+    CASE g.turno WHEN 'Madrugada' THEN 1 WHEN 'Manhã' THEN 2
                WHEN 'Tarde' THEN 3 ELSE 4 END,
-    fonte
+    u.fonte
 """,
 
     "Disponibilidade por Usina": f"""

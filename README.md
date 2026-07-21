@@ -383,12 +383,14 @@ Cada prompt do Genie Code já gera a tabela de saída indicada. Confirme que cad
 
 | TO-DO | Descrição |
 | -- | -- |
-| 1 | Criar view `vw_desempenho_usinas` |
-| 2 | Adicionar **comentários** às tabelas Gold |
-| 3 | Adicionar **comentários** em colunas-chave |
-| 4 | Revisar as **instruções customizadas** do Genie |
+| 1 | Adicionar **comentários** às tabelas Gold |
+| 2 | Adicionar **comentários** em colunas-chave |
+| 3 | Revisar as **instruções customizadas** do Genie |
 
-2. **Crie a Genie Agent**: **Genie** > **New** > adicione as tabelas Gold e views
+2. **Crie a Genie Agent**: **Genie** > **New** e adicione as tabelas do seu schema
+   `workshop_eneva.<seu_nome>`:
+   - **Dimensões:** `dim_usinas`, `dim_unidades_geradoras`
+   - **Gold:** `gold_geracao_por_usina`, `gold_geracao_por_fonte`, `gold_geracao_por_submercado`
 3. **Cole as instruções customizadas** no campo **Instructions** da Genie (contexto Eneva +
    glossário do setor elétrico) — copie o texto abaixo:
 
